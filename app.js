@@ -805,6 +805,7 @@ async function initApp(){
     if(window.firebaseLoad){
       try{
         const fbData = await window.firebaseLoad();
+        console.log('Firebase data loaded:', fbData);
         if(fbData && fbData.txns){
           // Firebase data is the source of truth for authenticated users
           txns = fbData.txns || [];
@@ -813,6 +814,7 @@ async function initApp(){
           recurring = fbData.recurring || [];
           investments = fbData.investments || [];
           if(fbData.checkingData) checkingData = fbData.checkingData;
+          console.log('checkingData from Firebase:', checkingData);
           if(fbData.subscriptions) subscriptions = fbData.subscriptions;
           // Sync to localStorage for offline access
           try{
