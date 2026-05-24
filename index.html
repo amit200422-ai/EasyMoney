@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B1120">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="כסף חכם">
+<title>כסף חכם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" id="pwa-manifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="כסף חכם">
+<script src="app.js"></script>
+</head>
+<body>
+<!-- LOCK SCREEN -->
+<div class="lock-screen" id="lock-screen" style="display:none">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">כסף חכם</div>
+    <div class="lock-sub">הזן סיסמה לכניסה</div>
+    <input type="password" class="lock-input" id="lock-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')checkLock()">
+    <div class="lock-err" id="lock-err"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center" onclick="checkLock()">כניסה</button>
+    <div style="margin-top:1rem;font-size:11px;color:var(--t3)">לשינוי סיסמה — כנס להגדרות לאחר הכניסה</div>
+  </div>
+</div>
+
+<div class="login-screen" id="login-screen" style="display:none">
+  <div class="login-box">
+    <div class="login-logo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93V18h-2v-1.07C9.39 16.64 8 15.08 8 13h2c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2c-2.21 0-4-1.79-4-4 0-1.87 1.28-3.43 3-3.87V2h2v1.13c1.72.44 3 2 3 3.87h-2c0-1.1-.9-2-2-2s-2 .9-2 2 .9 2 2 2c2.21 0 4 1.79 4 4 0 1.87-1.28 3.43-3 3.93z"/></svg></div>
+    <div class="login-title">כסף חכם 💚</div>
+    <div class="login-sub">מנהל הכספים האישי שלך<br>הנתונים נשמרים בענן בין כל המכשירים</div>
+    <button class="login-btn" onclick="window.doGoogleLogin()">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      כניסה עם Google
+    </button>
+    <div class="login-divider">או</div>
+    <button class="login-guest" onclick="window.doGuest()">המשך ללא כניסה (מכשיר זה בלבד)</button>
+  </div>
+</div>
+
+<div class="shell">
+<!-- SIDEBAR -->
+<nav class="sidebar"><div class="si">
+  <div class="logo"><div class="logo-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93V18h-2v-1.07C9.39 16.64 8 15.08 8 13h2c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2c-2.21 0-4-1.79-4-4 0-1.87 1.28-3.43 3-3.87V2h2v1.13c1.72.44 3 2 3 3.87h-2c0-1.1-.9-2-2-2s-2 .9-2 2 .9 2 2 2c2.21 0 4 1.79 4 4 0 1.87-1.28 3.43-3 3.93z"/></svg></div><div class="logo-txt">כסף<span>חכם</span></div></div>
+  <div class="ng">כללי</div>
+  <button class="ni active" onclick="nav('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>סקירה כללית</button>
+  <button class="ni" onclick="nav('transactions',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h12M3 18h8"/></svg>תנועות</button>
+  <button class="ni" onclick="nav('monthly',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>גרף חודשי</button>
+  <div class="ng">ניהול</div>
+  <button class="ni" onclick="nav('budget',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>תקציב</button>
+  <button class="ni" onclick="nav('savings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 8a5 5 0 00-9.9-1H3v9h14v-2.5"/><path d="M10 12v3m4-3v3"/></svg>כיס חיסכון</button>
+  <button class="ni" onclick="nav('recurring',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l3-3 3 3M6 3v12"/><path d="M21 18l-3 3-3-3m3 3V6"/></svg>הוצאות קבועות</button>
+  <div class="ng">השקעות</div>
+  <button class="ni" onclick="nav('stocks',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>תיק השקעות</button>
+  <button class="ni" onclick="nav('networth',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.38 1.34-2.5 3-2.5s3 1.12 3 2.5-1.34 2.5-3 2.5-3 1.12-3 2.5 1.34 2.5 3 2.5"/></svg>שווי נטו</button>
+  <div class="ng">ניתוח</div>
+  <button class="ni" onclick="nav('import',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>ייבוא אשראי</button>
+  <button class="ni" onclick="nav('subscriptions',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>מנויים פעילים</button>
+  <button class="ni" onclick="nav('analysis',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>ניתוח מתקדם</button>
+  <button class="ni" onclick="nav('tips',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 00-4 12.9V17h8v-2.1A7 7 0 0012 2zM9 21h6M10 17h4"/></svg>המלצות</button>
+  <div class="sep"></div>
+  <div class="sb">
+    <button class="ubar" id="ubar" onclick="window.doSignOut()"></button>
+    <button class="ni" onclick="toggleTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span id="theme-lbl">מצב בהיר</span></button>
+    <button class="ni" onclick="nav('settings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>הגדרות</button>
+    <button class="btn btn-g" style="width:100%;margin-top:8px;font-size:12px;justify-content:center" onclick="exportXlsx()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>ייצוא Excel</button>
+  </div>
+</div></nav>
+
+<!-- MOBILE NAV -->
+<nav class="mob-nav">
+  <button class="mn active" onclick="nav('dashboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>בית</span></button>
+  <button class="mn" onclick="nav('transactions',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h12M3 18h8"/></svg><span>תנועות</span></button>
+  <button class="mn" onclick="nav('stocks',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>השקעות</span></button>
+  <button class="mn" onclick="nav('networth',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10"/></svg><span>שווי</span></button>
+  <button class="mn" onclick="nav('import',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><span>ייבוא</span></button>
+  <button class="mn" onclick="nav('tips',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M12 12v4m0 4h.01"/></svg><span>טיפים</span></button>
+</nav>
+
+<main class="main">
+<div id="page-dashboard" class="page active">
+  <div class="ph">
+    <div><div class="pt">שלום 👋</div><div class="pt-sub" id="dash-date"></div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn btn-sm" onclick="openCheckingModal()" style="font-size:11px;color:var(--blue);border-color:rgba(77,159,255,0.3)">🏦 הגדר עו"ש</button>
+      <select id="dash-month" onchange="onDashMonthChange()" style="padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif">
+        <option value="current">📅 החודש הנוכחי</option>
+        <option value="all">🗓 כל הזמנים</option>
+      </select>
+    </div>
+  </div>
+  <div class="checking-card" id="checking-card">
+    <div class="ck-top">
+      <div class="ck-bank">🏦 <span id="ck-bank-name">מזרחי טפחות</span> — עו"ש</div>
+      <button class="ck-edit" onclick="openCheckingModal()">✏️ עדכן יתרת פתיחה</button>
+    </div>
+    <div class="ck-lbl">יתרה נוכחית משוערת</div>
+    <div class="ck-bal" id="ck-bal">₪0</div>
+    <div class="ck-sub" id="ck-sub"></div>
+    <div class="ck-flow">
+      <div class="ck-fi"><div class="ck-dot" style="background:#00E5A0"></div><span style="color:rgba(255,255,255,0.5)">הכנסות:</span><span style="color:#00E5A0;font-weight:700" id="ck-inc">₪0</span></div>
+      <div class="ck-fi"><div class="ck-dot" style="background:#FF5370"></div><span style="color:rgba(255,255,255,0.5)">הוצאות:</span><span style="color:#FF5370;font-weight:700" id="ck-exp">₪0</span></div>
+      <div class="ck-fi"><div class="ck-dot" style="background:#FFB830"></div><span style="color:rgba(255,255,255,0.5)">חיסכון:</span><span style="color:#FFB830;font-weight:700" id="ck-sav">₪0</span></div>
+    </div>
+  </div>
+  <div class="bstrip" id="bs"></div>
+  <div class="g4" id="ms"></div>
+  <div class="g2">
+    <div class="card"><div class="ct">הוצאות לפי קטגוריה</div><div id="d-cats"></div></div>
+    <div class="card"><div class="ct">5 הוצאות הגדולות</div><div id="d-top5"></div></div>
+  </div>
+  <div class="card"><div class="ct">תנועות אחרונות</div><table class="tbl"><tbody id="d-recent"></tbody></table></div>
+</div>
+
+<div id="page-transactions" class="page">
+  <div class="ph"><div class="pt">תנועות</div></div>
+  <div class="card">
+    <div class="ct">הוספת תנועה</div>
+    <div class="frow">
+      <div class="fi"><label>סוג</label><select id="t-type"><option value="expense">הוצאה</option><option value="income">הכנסה</option><option value="savings">חיסכון</option></select></div>
+      <div class="fi"><label>תיאור</label><input type="text" id="t-desc" placeholder="תיאור..."></div>
+      <div class="fi"><label>סכום ₪</label><input type="number" id="t-amt" placeholder="0" min="0" inputmode="decimal"></div>
+    </div>
+    <div class="frow">
+      <div class="fi"><label>קטגוריה</label><select id="t-cat"><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="utilities">חשבונות</option><option value="health">בריאות</option><option value="entertainment">בידור</option><option value="salary">משכורת</option><option value="freelance">פרילנס</option><option value="savings">חיסכון</option><option value="other">אחר</option></select></div>
+      <div class="fi"><label>תאריך</label><input type="date" id="t-date"></div>
+      <button class="btn btn-g" onclick="addTxn()" style="height:42px;align-self:flex-end">+ הוסף</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+    <input type="text" id="srch" placeholder="🔍 חיפוש..." oninput="renderTxns()" style="flex:1;min-width:140px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;outline:none;font-family:'Heebo',sans-serif">
+    <select id="f-type" onchange="renderTxns()" style="padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="all">הכל</option><option value="expense">הוצאות</option><option value="income">הכנסות</option><option value="savings">חיסכון</option></select>
+    <select id="f-cat" onchange="renderTxns()" style="padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="all">כל קטגוריה</option><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="utilities">חשבונות</option><option value="health">בריאות</option><option value="entertainment">בידור</option><option value="salary">משכורת</option><option value="freelance">פרילנס</option><option value="other">אחר</option></select>
+    <select id="f-mon" onchange="renderTxns()" style="padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="all">כל החודשים</option></select>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>קטגוריה</th><th>תיאור</th><th>תאריך</th><th>סכום</th><th></th></tr></thead><tbody id="txn-tbody"></tbody></table></div>
+</div>
+
+<div id="page-monthly" class="page">
+  <div class="ph"><div class="pt">גרף חודשי</div><select id="mon-range" onchange="buildMonthly()" style="padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="6">6 חודשים</option><option value="12">12 חודשים</option><option value="3">3 חודשים</option></select></div>
+  <div class="card"><div class="ct">הכנסות מול הוצאות</div><div style="display:flex;gap:16px;font-size:12px;color:var(--t2);margin-bottom:10px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green);margin-left:5px"></span>הכנסות</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);margin-left:5px"></span>הוצאות</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--blue);margin-left:5px"></span>מאזן</span></div><div style="position:relative;height:240px"><canvas id="mon-chart"></canvas></div></div>
+  <div class="g2"><div class="card"><div class="ct">עוגת הוצאות</div><div class="dw"><div style="position:relative;height:145px;width:145px;flex-shrink:0"><canvas id="donut-chart"></canvas></div><div class="dl" id="donut-leg"></div></div></div><div class="card"><div class="ct">השוואה לחודש שעבר</div><div id="cmp-sec"></div></div></div>
+</div>
+
+<div id="page-budget" class="page">
+  <div class="ph"><div class="pt">תקציב חודשי</div></div>
+  <div class="card"><div class="ct">הגדרת תקציב</div><div class="frow"><div class="fi"><label>קטגוריה</label><select id="bud-cat"><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="utilities">חשבונות</option><option value="health">בריאות</option><option value="entertainment">בידור</option><option value="other">אחר</option></select></div><div class="fi"><label>תקציב (₪)</label><input type="number" id="bud-amt" placeholder="1000" inputmode="decimal"></div><button class="btn btn-g" onclick="saveBudget()" style="height:42px;align-self:flex-end">שמור</button></div></div>
+  <div id="bud-list"></div>
+  <div class="card"><div class="ct">חיזוי סוף חודש</div><div id="forecast"></div></div>
+</div>
+
+<div id="page-savings" class="page">
+  <div class="ph"><div class="pt">כיס חיסכון</div></div>
+  <div class="card sc-acc"><div class="sl">יתרת כיס חיסכון</div><div style="font-size:34px;font-weight:900;color:var(--green);margin:8px 0;text-shadow:var(--glow)" id="sav-big">₪0</div><div style="font-size:12px;color:var(--t2)">מעקב תיעודי — הכסף נשאר בחשבון שלך</div><div class="pgw"><div class="pgf" id="sav-pg" style="width:0%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3)"><span>₪0</span><span id="sav-gl">יעד: ₪10,000</span></div><div style="margin-top:1rem;padding:10px 12px;background:var(--bluel);border-radius:var(--rs);font-size:12px;color:var(--blue);border:1px solid rgba(77,159,255,.15)" id="emergency"></div></div>
+  <div class="g2"><div class="card"><div class="ct">הגדרת יעד</div><div class="frow" style="margin:0"><div class="fi"><label>יעד (₪)</label><input type="number" id="sav-gi" placeholder="10000" inputmode="decimal"></div><button class="btn btn-g" onclick="setSavGoal()" style="height:42px;align-self:flex-end">שמור</button></div></div><div class="card"><div class="ct">חיזוי הגעה ליעד</div><div id="sav-fc"></div></div></div>
+  <div class="card"><div class="ct">היסטוריית חיסכון</div><table class="tbl"><tbody id="sav-tbody"></tbody></table></div>
+</div>
+
+<div id="page-recurring" class="page">
+  <div class="ph"><div class="pt">הוצאות קבועות</div></div>
+  <div class="card"><div class="ct">הוספת הוצאה קבועה</div><div class="frow"><div class="fi"><label>תיאור</label><input type="text" id="rec-desc" placeholder="שכר דירה, נטפליקס..."></div><div class="fi"><label>סכום (₪)</label><input type="number" id="rec-amt" placeholder="0" inputmode="decimal"></div><div class="fi"><label>קטגוריה</label><select id="rec-cat"><option value="housing">דיור</option><option value="utilities">חשבונות</option><option value="entertainment">בידור</option><option value="transport">תחבורה</option><option value="health">בריאות</option><option value="other">אחר</option></select></div><div class="fi"><label>יום בחודש</label><input type="number" id="rec-day" placeholder="1" min="1" max="28" inputmode="numeric"></div><button class="btn btn-g" onclick="addRecurring()" style="height:42px;align-self:flex-end">+ הוסף</button></div></div>
+  <div id="rec-list"></div>
+  <div class="card"><div class="ct">סיכום</div><div id="rec-sum"></div><button class="btn btn-g" style="margin-top:1rem" onclick="applyRecurring()">הוסף לחודש הנוכחי</button></div>
+</div>
+
+<div id="page-stocks" class="page">
+  <div class="ph"><div><div class="pt">תיק השקעות</div><div class="pt-sub">עדכן ידנית את שווי ההשקעות שלך בכל חודש</div></div><button class="btn btn-g btn-sm" onclick="openAddInv()">+ הוסף / עדכן</button></div>
+  <div class="g3" id="stk-stats"></div>
+  <div id="stk-list"></div>
+  <div class="g2">
+    <div class="card"><div class="ct">התפלגות תיק</div><div class="dw"><div style="position:relative;height:145px;width:145px;flex-shrink:0"><canvas id="stk-donut"></canvas></div><div class="dl" id="stk-dleg"></div></div></div>
+    <div class="card"><div class="ct">שווי תיק לאורך זמן</div><div style="position:relative;height:155px"><canvas id="stk-perf"></canvas></div></div>
+  </div>
+</div>
+
+<div id="page-networth" class="page">
+  <div class="ph"><div class="pt">שווי נטו כולל</div></div>
+  <div class="g3" id="nw-stats"></div>
+  <div class="card"><div class="ct">פירוט נכסים</div><div id="nw-breakdown"></div></div>
+  <div class="g2"><div class="card"><div class="ct">התפלגות נכסים</div><div class="dw"><div style="position:relative;height:150px;width:150px;flex-shrink:0"><canvas id="nw-donut"></canvas></div><div class="dl" id="nw-dleg"></div></div></div><div class="card"><div class="ct">סיכום מפורט</div><div id="nw-detail"></div></div></div>
+</div>
+
+<div id="page-analysis" class="page">
+  <div class="ph"><div class="pt">ניתוח מתקדם</div></div>
+  <div class="g2" id="ins-grid" style="margin-bottom:1.2rem"></div>
+  <div class="g2">
+    <div class="card"><div class="ct">מגמת הוצאות</div><div class="fi" style="margin-bottom:.75rem"><label>קטגוריה</label><select id="tr-cat" onchange="buildTrend()"><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="entertainment">בידור</option><option value="health">בריאות</option></select></div><div style="position:relative;height:170px"><canvas id="tr-chart"></canvas></div></div>
+    <div class="card"><div class="ct">השוואת חודשים</div><div style="display:flex;gap:8px;margin-bottom:.75rem"><div class="fi"><label>חודש א</label><select id="cmp-a" onchange="renderCmp()"></select></div><div class="fi"><label>חודש ב</label><select id="cmp-b" onchange="renderCmp()"></select></div></div><div id="cmp-detail"></div></div>
+  </div>
+  <div class="card"><div class="ct">5 הוצאות הגבוהות — כל הזמנים</div><div id="all-top5"></div></div>
+</div>
+
+<div id="page-tips" class="page">
+  <div class="ph"><div class="pt">המלצות לייעול</div></div>
+  <div id="tips-list"></div>
+</div>
+
+<div id="page-settings" class="page">
+  <div class="ph"><div class="pt">הגדרות</div></div>
+  <div class="card"><div class="ct-lg">ייצוא</div><button class="btn btn-g" onclick="exportXlsx()">ייצוא Excel מלא</button></div>
+  <div class="card"><div class="ct-lg" style="color:var(--red)">איפוס נתונים</div><div style="font-size:13px;color:var(--t2);margin-bottom:1rem;line-height:1.6">מחיקת נתונים — פעולה בלתי הפיכה.</div><div class="reset-area"><div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:10px">⚠ אזהרה</div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-r" onclick="resetAll()">מחק הכל</button><button class="btn btn-r" onclick="resetTxns()">מחק תנועות בלבד</button><button class="btn btn-r" onclick="resetInv()">מחק השקעות בלבד</button></div></div></div>
+  <div class="card">
+  <div class="ct-lg">שינוי סיסמה</div>
+  <div class="frow">
+    <div class="fi"><label>סיסמה חדשה</label><input type="password" id="new-pass" placeholder="הזן סיסמה חדשה"></div>
+    <div class="fi"><label>אימות סיסמה</label><input type="password" id="new-pass2" placeholder="הזן שוב"></div>
+    <button class="btn btn-g" onclick="changePass()" style="height:42px;align-self:flex-end">שמור</button>
+  </div>
+  <div style="font-size:11px;color:var(--t3);margin-top:.5rem">הסיסמה הנוכחית: kesefchacham (ברירת מחדל)</div>
+</div>
+<div class="card"><div class="ct-lg">אודות</div><div style="font-size:13px;color:var(--t2);line-height:2">גרסה 3.0 — כסף חכם<br>כל הנתונים שמורים בדפדפן שלך בלבד<br>לא נשלח מידע לשום שרת חיצוני</div></div>
+</div>
+
+<!-- IMPORT CREDIT PAGE -->
+<div id="page-import" class="page">
+  <div class="ph" style="margin-bottom:1.2rem">
+    <div><div class="pt">ייבוא פירוט אשראי</div><div class="pt-sub">העלה קובץ Excel מהבנק — ההוצאות יסווגו ויוזנו אוטומטית</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">בחר את חברת האשראי</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.2rem">
+      <button class="btn" id="bank-isracard" onclick="selectBank('isracard')" style="font-size:13px;background:var(--gl);color:var(--green);border-color:var(--green)">✓ ישראכרט / אמריקן אקספרס</button>
+      <button class="btn" id="bank-cal" onclick="selectBank('cal')" style="font-size:13px">כאל / ויזה</button>
+      <button class="btn" id="bank-max" onclick="selectBank('max')" style="font-size:13px">מקס / לאומי קארד</button>
+      <button class="btn" id="bank-other" onclick="selectBank('other')" style="font-size:13px">אחר (CSV)</button>
+    </div>
+
+    <div id="imp-drop" onclick="document.getElementById('imp-file').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--green)';this.style.background='var(--gl)'"
+      ondragleave="this.style.borderColor='';this.style.background=''"
+      ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handleImpFile({files:event.dataTransfer.files})"
+      style="border:2px dashed var(--border2);border-radius:var(--r);padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1rem">
+      <div style="font-size:2.5rem;margin-bottom:.75rem">📂</div>
+      <div style="font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px">לחץ לבחירת קובץ או גרור לכאן</div>
+      <div style="font-size:13px;color:var(--t2)">Excel (.xlsx) — פירוט עסקאות מהאתר של חברת האשראי</div>
+      <div style="font-size:12px;color:var(--t3);margin-top:8px">ישראכרט: כנס לאתר ← פעילות כרטיס ← ייצוא לאקסל</div>
+    </div>
+    <input type="file" id="imp-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImpFile(this)">
+
+    <div id="imp-status" style="font-size:13px;min-height:22px;text-align:center;padding:4px 0"></div>
+  </div>
+
+  <div id="imp-preview" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="ctitle" style="margin:0">תצוגה מקדימה</div>
+          <div style="font-size:13px;color:var(--t2);margin-top:3px"><span id="imp-count" style="font-weight:700;color:var(--green)">0</span> עסקאות זוהו — בדוק את הסיווג לפני אישור</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick="cancelImp()">ביטול</button>
+          <button class="btn btn-g" onclick="confirmImp()">✓ ייבא למערכת</button>
+        </div>
+      </div>
+      <div id="imp-summary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)"></div>
+      <div id="imp-rows" style="max-height:450px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTIONS PAGE -->
+<div id="page-subscriptions" class="page">
+  <div class="ph" style="margin-bottom:1.2rem">
+    <div><div class="pt">מנויים פעילים</div><div class="pt-sub">עקוב אחר כל המנויים שלך במקום אחד</div></div>
+    <button class="btn btn-g btn-sm" onclick="openAddSub()">+ הוסף מנוי</button>
+  </div>
+  <div class="g3" id="sub-stats"></div>
+
+  <div id="sub-list"></div>
+
+  <div style="margin-top:1rem;padding:1rem 1.2rem;background:var(--amber-l);border:1px solid rgba(255,184,48,0.25);border-radius:var(--r);font-size:12px;color:var(--amber)">
+    💡 <strong>טיפ:</strong> לאחר ייבוא פירוט אשראי, המערכת תזהה אוטומטית חיובים קבועים ותציע להוסיפם כמנויים.
+  </div>
+</div>
+
+<!-- ADD SUBSCRIPTION MODAL -->
+<div class="modal-bg" id="sub-modal">
+  <div class="modal">
+    <div class="modal-t">הוספת / עריכת מנוי</div>
+    <input type="hidden" id="sub-edit-id">
+    <div class="frow">
+      <div class="fi"><label>שם המנוי</label><input type="text" id="sub-name" placeholder="נטפליקס, ספוטיפיי..."></div>
+    </div>
+    <div class="frow">
+      <div class="fi"><label>מחיר חודשי (₪)</label><input type="number" id="sub-price" placeholder="0" inputmode="decimal"></div>
+      <div class="fi"><label>קטגוריה</label><select id="sub-cat">
+        <option value="entertainment">בידור / סטרימינג</option>
+        <option value="utilities">תקשורת / אינטרנט</option>
+        <option value="health">בריאות / כושר</option>
+        <option value="food">אוכל / משלוחים</option>
+        <option value="other">אחר</option>
+      </select></div>
+    </div>
+    <div class="frow">
+      <div class="fi"><label>תאריך חיוב (יום בחודש)</label><input type="number" id="sub-day" placeholder="1" min="1" max="28" inputmode="numeric"></div>
+      <div class="fi"><label>תאריך תפוגה (אופציונלי)</label><input type="date" id="sub-exp"></div>
+    </div>
+    <div class="frow">
+      <div class="fi"><label>הערות</label><input type="text" id="sub-note" placeholder="למשל: משפחה, ניסיון חינם..."></div>
+    </div>
+    <div class="modal-act">
+      <button class="btn" onclick="closeModal('sub-modal')">ביטול</button>
+      <button class="btn btn-g" onclick="saveSub()">שמור מנוי</button>
+    </div>
+  </div>
+</div>
+
+
+</main>
+</div>
+
+
+
+<div class="modal-bg" id="checking-modal"><div class="modal">
+  <div class="modal-t">הגדרת יתרת עו"ש</div>
+  <div style="font-size:13px;color:var(--t2);margin-bottom:1rem;line-height:1.7">הזן את יתרת העו"ש הנוכחית שלך מהבנק.<br>המערכת תחשב אוטומטית לפי כל התנועות שרשמת.</div>
+  <div class="frow">
+    <div class="fi"><label>שם הבנק</label><select id="ck-bank-sel">
+      <option>מזרחי טפחות</option><option>לאומי</option><option>הפועלים</option><option>דיסקונט</option><option>בינלאומי</option><option>אחר</option>
+    </select></div>
+  </div>
+  <div class="frow">
+    <div class="fi"><label>יתרת פתיחה (₪)</label><input type="number" id="ck-opening" placeholder="0" inputmode="decimal"></div>
+    <div class="fi"><label>תאריך יתרת פתיחה</label><input type="date" id="ck-date"></div>
+  </div>
+  <div style="font-size:11px;color:var(--t3);margin-bottom:10px">* הזן את היתרה האמיתית מהבנק — המערכת תחשב מכאן</div>
+  <div class="modal-act">
+    <button class="btn" onclick="closeModal('checking-modal')">ביטול</button>
+    <button class="btn btn-g" onclick="saveChecking()">שמור</button>
+  </div>
+</div></div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="edit-modal"><div class="modal">
+  <div class="modal-t">עריכת תנועה</div>
+  <div class="frow"><div class="fi"><label>תיאור</label><input type="text" id="ed-desc"></div></div>
+  <div class="frow"><div class="fi"><label>סכום</label><input type="number" id="ed-amt" inputmode="decimal"></div><div class="fi"><label>תאריך</label><input type="date" id="ed-date"></div></div>
+  <div class="frow"><div class="fi"><label>קטגוריה</label><select id="ed-cat"><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="utilities">חשבונות</option><option value="health">בריאות</option><option value="entertainment">בידור</option><option value="salary">משכורת</option><option value="freelance">פרילנס</option><option value="savings">חיסכון</option><option value="other">אחר</option></select></div></div>
+  <div class="modal-act"><button class="btn" onclick="closeModal('edit-modal')">ביטול</button><button class="btn btn-g" onclick="saveEdit()">שמור</button></div>
+</div></div>
+
+<div class="modal-bg" id="inv-modal"><div class="modal">
+  <div class="modal-t">הוספת / עדכון השקעה</div>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:1rem;line-height:1.6;background:var(--gl);border-radius:var(--rs);padding:8px 10px;border:1px solid rgba(0,229,160,.2)">💡 להוסיף חדש — הזן שם חדש. לעדכן קיים — הזן את אותו שם. השווי החודשי יישמר בהיסטוריה.</div>
+  <div class="frow"><div class="fi"><label>שם ההשקעה</label><input type="text" id="inv-name" placeholder="קרן פנסיה, תיק מניות, נדל&quot;ן..."></div></div>
+  <div class="frow">
+    <div class="fi"><label>קטגוריה</label><select id="inv-type"><option value="pension">פנסיה / גמל</option><option value="stock">מניות / ETF</option><option value="realestate">נדל"ן</option><option value="savings_plan">חיסכון</option><option value="crypto">קריפטו</option><option value="other">אחר</option></select></div>
+    <div class="fi"><label>מטבע</label><select id="inv-cur"><option value="ILS">₪ שקל</option><option value="USD">$ דולר</option></select></div>
+  </div>
+  <div class="frow">
+    <div class="fi"><label>עלות / השקעה מקורית</label><input type="number" id="inv-cost" placeholder="0" inputmode="decimal"></div>
+    <div class="fi"><label>שווי נוכחי</label><input type="number" id="inv-value" placeholder="0" inputmode="decimal"></div>
+  </div>
+  <div class="frow"><div class="fi"><label>חודש</label><input type="month" id="inv-month"></div></div>
+  <div class="modal-act"><button class="btn" onclick="closeModal('inv-modal')">ביטול</button><button class="btn btn-g" onclick="saveInv()">שמור</button></div>
+</div></div>
+
+<div class="modal-bg" id="upd-modal"><div class="modal">
+  <div class="modal-t">עדכון שווי — <span id="upd-name"></span></div>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:1rem">הכנס את השווי הנוכחי להחודש</div>
+  <div class="frow"><div class="fi"><label>שווי נוכחי</label><input type="number" id="upd-val" placeholder="0" inputmode="decimal"></div><div class="fi"><label>חודש</label><input type="month" id="upd-mon"></div></div>
+  <div class="modal-act"><button class="btn" onclick="closeModal('upd-modal')">ביטול</button><button class="btn btn-g" onclick="saveUpd()">עדכן</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+</body>
+</html>
