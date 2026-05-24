@@ -183,6 +183,7 @@ function openCheckingModal(){
   document.getElementById('checking-modal').classList.add('show');
 }
 function saveChecking(){
+  console.log('saveChecking called');
   checkingData.bank=document.getElementById('ck-bank-sel').value;
   checkingData.opening=parseFloat(document.getElementById('ck-opening').value)||0;
   checkingData.openingDate=document.getElementById('ck-date').value;
