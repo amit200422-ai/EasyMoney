@@ -68,6 +68,7 @@ function showApp() {
 window.firebaseSave = async function(data) {
   if (!userKey) return;
   console.log('firebaseSave called with data:', data);
+  console.log('checkingData in firebaseSave:', data.checkingData);
   try {
     await db.ref(userKey).set(data);
   } catch(e) {
