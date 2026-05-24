@@ -182,14 +182,14 @@ function openCheckingModal(){
   document.getElementById('ck-date').value=checkingData.openingDate||new Date().toISOString().split('T')[0];
   document.getElementById('checking-modal').classList.add('show');
 }
-function saveChecking(){
+window.saveChecking = function(){
   console.log('saveChecking called');
   checkingData.bank=document.getElementById('ck-bank-sel').value;
   checkingData.opening=parseFloat(document.getElementById('ck-opening').value)||0;
   checkingData.openingDate=document.getElementById('ck-date').value;
   saveCheckingLocal();save();closeModal('checking-modal');renderCheckingBalance();
   toast('✓ יתרת עו"ש עודכנה','green');
-}
+};
 function renderCheckingBalance(){
   var card=document.getElementById('checking-card');
   if(!card)return;
