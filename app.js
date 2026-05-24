@@ -217,6 +217,7 @@ function checkLock(){ }
 function save(){
   try{localStorage.setItem('kc3_t',JSON.stringify(txns));localStorage.setItem('kc3_b',JSON.stringify(budgets));localStorage.setItem('kc3_g',String(savGoal));localStorage.setItem('kc3_r',JSON.stringify(recurring));localStorage.setItem('kc3_i',JSON.stringify(investments));}catch(e){}
   // Save to Firebase
+  console.log('window.firebaseSave exists:', typeof window.firebaseSave);
   if(window.firebaseSave){
     console.log('Saving to Firebase, checkingData:', checkingData);
     window.firebaseSave({txns,budgets,savGoal,recurring,investments,checkingData,subscriptions});
