@@ -67,8 +67,6 @@ function showApp() {
 // Firebase save function
 window.firebaseSave = async function(data) {
   if (!userKey) return;
-  console.log('firebaseSave called with data:', data);
-  console.log('checkingData in firebaseSave:', data.checkingData);
   try {
     await db.ref(userKey).set(data);
   } catch(e) {
@@ -185,7 +183,6 @@ function openCheckingModal(){
   document.getElementById('checking-modal').classList.add('show');
 }
 window.saveChecking = function(){
-  console.log('saveChecking called');
   checkingData.bank=document.getElementById('ck-bank-sel').value;
   checkingData.opening=parseFloat(document.getElementById('ck-opening').value)||0;
   checkingData.openingDate=document.getElementById('ck-date').value;
@@ -218,9 +215,7 @@ function checkLock(){ }
 function save(){
   try{localStorage.setItem('kc3_t',JSON.stringify(txns));localStorage.setItem('kc3_b',JSON.stringify(budgets));localStorage.setItem('kc3_g',String(savGoal));localStorage.setItem('kc3_r',JSON.stringify(recurring));localStorage.setItem('kc3_i',JSON.stringify(investments));}catch(e){}
   // Save to Firebase
-  console.log('window.firebaseSave exists:', typeof window.firebaseSave);
   if(window.firebaseSave){
-    console.log('Saving to Firebase, checkingData:', checkingData);
     window.firebaseSave({txns,budgets,savGoal,recurring,investments,checkingData,subscriptions});
   }
 }
@@ -808,7 +803,6 @@ async function initApp(){
     if(window.firebaseLoad){
       try{
         const fbData = await window.firebaseLoad();
-        console.log('Firebase data loaded:', fbData);
         if(fbData && fbData.txns){
           // Firebase data is the source of truth for authenticated users
           txns = fbData.txns || [];
@@ -817,7 +811,6 @@ async function initApp(){
           recurring = fbData.recurring || [];
           investments = fbData.investments || [];
           if(fbData.checkingData) checkingData = fbData.checkingData;
-          console.log('checkingData from Firebase:', checkingData);
           if(fbData.subscriptions) subscriptions = fbData.subscriptions;
           // Sync to localStorage for offline access
           try{
