@@ -780,7 +780,6 @@ function toggleTheme(){isDark=!isDark;if(!isDark){document.documentElement.style
 
 // ─── INITIALIZATION ─────────────────────────────────────────────────────────
 async function initApp(){
-  loadChecking();
   loadSubs();
   initLock();
 
@@ -824,6 +823,7 @@ async function initApp(){
             localStorage.setItem('kc3_subs',JSON.stringify(subscriptions));
           }catch(e){}
           loaded = true;
+          loadChecking();
           const si=document.createElement('div');
           si.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,229,160,0.15);border:1px solid rgba(0,229,160,0.3);color:#00E5A0;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;z-index:999;direction:rtl;white-space:nowrap';
           si.textContent='☁️ סונכרן מהענן';
