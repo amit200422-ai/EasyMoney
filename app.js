@@ -855,9 +855,18 @@ function toggleChat() {
   const toggle = chat.querySelector('.chat-toggle');
   toggle.textContent = chat.classList.contains('collapsed') ? '+' : '−';
 
-  // Show insights when opening the chat
+  // Clear chat history when collapsing
+  if (!wasCollapsed) {
+    const body = document.getElementById('chat-body');
+    body.innerHTML = '';
+  }
+
+  // Show insights when opening the chat (only if body is empty)
   if (wasCollapsed) {
-    setTimeout(() => showInsightsOnOpen(), 300);
+    const body = document.getElementById('chat-body');
+    if (body.children.length === 0) {
+      setTimeout(() => showInsightsOnOpen(), 300);
+    }
   }
 }
 
@@ -875,14 +884,18 @@ function generateInsights() {
   });
   const recurring = Object.entries(descCounts).filter(([desc, count]) => count >= 2);
   if (recurring.length > 0) {
-    insights.push(`⚠️ זיהיתי ${recurring.length} עסקאות חוזרות שעלולות להיות מנויים: ${recurring.slice(0, 3).map(([d]) => d).join(', ')}`);
+    const countText = recurring.length === 1 ? 'עסקה חוזרת אחת' : `${recurring.length} עסקאות חוזרות`;
+    insights.push(`⚠️ זיהיתי ${countText} שעלולות להיות מנויים: ${recurring.slice(0, 3).map(([d]) => d).join(', ')}`);
   }
 
-  // Check for unused subscriptions
+  // Subscription reminders
   if (subscriptions && subscriptions.length > 0) {
-    const unused = subscriptions.filter(s => s.active && (!s.lastUsed || isOlderThanMonths(s.lastUsed, 3)));
-    if (unused.length > 0) {
-      insights.push(`💡 יש ${unused.length} מנויים שלא השתמשת בהם ב-3 חודשים אחרונים. כדאי לבדוק אם הם עדיין רלוונטיים.`);
+    const activeSubs = subscriptions.filter(s => s.active);
+    if (activeSubs.length > 0) {
+      const monthlyCost = activeSubs.reduce((sum, s) => sum + (s.price || 0), 0);
+      const yearlyCost = monthlyCost * 12;
+      const subList = activeSubs.map(s => `${s.name} (${s.price} ₪/חודש)`).join(', ');
+      insights.push(`💳 יש לך ${activeSubs.length} מנויים פעילים: ${subList}. עלות חודשית: ${monthlyCost.toLocaleString('he-IL')} ₪, עלות שנתית: ${yearlyCost.toLocaleString('he-IL')} ₪. בדוק אם כולם עדיין רלוונטיים.`);
     }
   }
 
@@ -893,7 +906,8 @@ function generateInsights() {
       return spent > b.amount;
     });
     if (overspent.length > 0) {
-      insights.push(`📈 חרגת מהתקציב ב-${overspent.length} קטגוריות החודש.`);
+      const catText = overspent.length === 1 ? 'קטגוריה אחת' : `${overspent.length} קטגוריות`;
+      insights.push(`📈 חרגת מהתקציב ב-${catText} החודש.`);
     }
   }
 
@@ -1084,14 +1098,17 @@ function processQuery(query) {
   // Query: total balance
   if (q.includes('סך הכל') || q.includes('כמה כסף יש לי') || q.includes('יתרה כוללת')) {
     const checkingBalance = (checkingData && checkingData.balance) || 0;
-    const savingsTotal = (savGoal || 0);
+    // Calculate actual savings from transactions, not the goal
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const savingsTxns = txns.filter(t => t.cat === 'savings' && t.type === 'expense');
+    const actualSavings = savingsTxns.reduce((sum, t) => sum + t.amount, 0);
     const stocksValue = investments ? investments.reduce((sum, s) => {
       const shares = parseFloat(s.shares) || 0;
       const price = parseFloat(s.price) || parseFloat(s.currentPrice) || 0;
       return sum + (shares * price);
     }, 0) : 0;
-    const total = checkingBalance + savingsTotal + stocksValue;
-    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${checkingBalance.toLocaleString('he-IL')}, חסכון: ${savingsTotal.toLocaleString('he-IL')}, מניות: ${stocksValue.toLocaleString('he-IL')}).`;
+    const total = checkingBalance + actualSavings + stocksValue;
+    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${checkingBalance.toLocaleString('he-IL')}, חסכון: ${actualSavings.toLocaleString('he-IL')}, מניות: ${stocksValue.toLocaleString('he-IL')}).`;
   }
 
   // Query: insights
