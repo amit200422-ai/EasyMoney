@@ -1120,33 +1120,41 @@ function processQuery(query) {
     console.log('DEBUG: investments =', investments);
     console.log('DEBUG: txns =', txns);
     
-    // checkingData has 'opening' instead of 'balance'
-    const checkingBalance = (checkingData && (checkingData.balance || checkingData.opening)) || 0;
-    // Use savGoal as the savings balance (the actual amount saved)
-    const savingsBalance = (savGoal || 0);
-    // Check investments structure
-    console.log('DEBUG: investments[0] =', investments ? investments[0] : 'no investments');
-    const stocksValue = investments ? investments.reduce((sum, s) => {
-      console.log('DEBUG: investment item =', s);
-      const shares = parseFloat(s.shares) || 0;
-      const price = parseFloat(s.price) || parseFloat(s.currentPrice) || parseFloat(s.value) || 0;
-      console.log('DEBUG: shares =', shares, 'price =', price, 'product =', shares * price);
-      return sum + (shares * price);
+    // Calculate using the same formula as renderNetWorth
+    const allSav = txns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
+    const stkVal = investments ? investments.reduce((s, i) => {
+      // Use iILS function to convert to ILS if needed
+      const cost = parseFloat(i.cost) || 0;
+      return s + cost;
     }, 0) : 0;
-    // Calculate net income (income - expenses) for the current month
+    
+    // Calculate cash (current month income - expenses - savings)
     const currentMonth = new Date().toISOString().slice(0, 7);
     const currentMonthTxns = txns.filter(t => t.date.startsWith(currentMonth));
-    const monthlyIncome = currentMonthTxns.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const monthlyExpenses = currentMonthTxns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-    const netIncome = monthlyIncome - monthlyExpenses;
+    const monthlyIncome = currentMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const monthlyExpenses = currentMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const monthlySavings = currentMonthTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
+    const cash = Math.max(0, monthlyIncome - monthlyExpenses - monthlySavings);
     
-    console.log('DEBUG: checkingBalance =', checkingBalance);
-    console.log('DEBUG: savingsBalance =', savingsBalance);
-    console.log('DEBUG: stocksValue =', stocksValue);
-    console.log('DEBUG: netIncome =', netIncome);
+    // Calculate checking balance using the same formula as renderNetWorth
+    let ckBal = cash;
+    if (checkingData && checkingData.opening) {
+      const od = checkingData.openingDate;
+      const rel = txns.filter(t => !od || t.date >= od);
+      const ckI = rel.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+      const ckE = rel.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+      const ckS = rel.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
+      ckBal = checkingData.opening + ckI - ckE - ckS;
+    }
     
-    const total = checkingBalance + savingsBalance + stocksValue + netIncome;
-    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${checkingBalance.toLocaleString('he-IL')}, חסכון: ${savingsBalance.toLocaleString('he-IL')}, מניות: ${stocksValue.toLocaleString('he-IL')}, הכנסה נטו החודש: ${netIncome.toLocaleString('he-IL')}).`;
+    const total = allSav + stkVal + ckBal;
+    
+    console.log('DEBUG: allSav =', allSav);
+    console.log('DEBUG: stkVal =', stkVal);
+    console.log('DEBUG: ckBal =', ckBal);
+    console.log('DEBUG: total =', total);
+    
+    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${ckBal.toLocaleString('he-IL')}, חיסכון: ${allSav.toLocaleString('he-IL')}, השקעות: ${stkVal.toLocaleString('he-IL')}).`;
   }
 
   // Query: insights
