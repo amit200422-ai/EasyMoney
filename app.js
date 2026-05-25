@@ -493,19 +493,27 @@ async function processImpFile(file) {
         try { text = new TextDecoder(enc).decode(buf); if (/[\u05d0-\u05ea]/.test(text)) break; } catch(e){}
       }
       const rows = text.split(/\r?\n/).map(l => l.split(',').map(c => c.replace(/^"|"$/g,'').trim()));
-      results = parseIsracardRows(rows);
+      if (selectedBank === 'max') {
+        results = parseMaxRows(rows);
+      } else {
+        results = parseIsracardRows(rows);
+      }
     } else {
       const wb = XLSX.read(buf, {type:'array', codepage:1255});
       for (const name of wb.SheetNames) {
         const ws = wb.Sheets[name];
         // raw:true שומר מספרים כמספרים ולא כטקסט
         const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
-        results = results.concat(parseIsracardRows(rows));
+        if (selectedBank === 'max') {
+          results = results.concat(parseMaxRows(rows));
+        } else {
+          results = results.concat(parseIsracardRows(rows));
+        }
       }
     }
 
     if (!results.length) {
-      status.textContent = '⚠ לא נמצאו עסקאות. ודא שהקובץ הוא פירוט עסקאות מישראכרט/אמריקן אקספרס.';
+      status.textContent = '⚠ לא נמצאו עסקאות. ודא שהקובץ הוא פירוט עסקאות מהבנק שנבחר.';
       return;
     }
     // Sort by date descending
@@ -576,6 +584,87 @@ function normDate(str) {
   let [d,m,y] = p;
   if (y.length === 2) y = '20' + y;
   return y.padStart(4,'20') + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
+}
+
+// Parser לפורמט MAX
+// שורה 4: כותרת עם שמות עמודות
+// שורות 5+: נתוני עסקאות
+function parseMaxRows(rows) {
+  const results = [];
+  const MAX_CAT_MAP = {
+    'מסעדות, קפה וברים': 'food',
+    'רפואה ובתי מרקחת': 'health',
+    'ביטוח': 'other',
+    'פנאי, בידור וספורט': 'entertainment',
+    'סופרמרקטים': 'food',
+    'ביגוד והנעלה': 'other',
+    'תחבורה': 'transport',
+    'דלק': 'transport',
+    'תקשורת': 'utilities',
+    'חשמל ומים': 'utilities',
+    'חינוך': 'other',
+    'בריאות וכושר': 'health',
+    'נסיעות ותיירות': 'other',
+    'מסעדות': 'food',
+    'קפה וברים': 'food',
+    'קניות': 'other'
+  };
+
+  let headerFound = false;
+  let headerIndex = -1;
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length < 2) continue;
+
+    const firstCol = String(row[0] || '').trim();
+
+    // זיהוי שורת הכותרת
+    if (firstCol === 'תאריך עסקה') {
+      headerFound = true;
+      headerIndex = i;
+      continue;
+    }
+
+    // דלג על שורות לפני הכותרת
+    if (!headerFound) continue;
+
+    // דלג על שורות ריקות או שורות סיכום
+    if (firstCol === '' || firstCol === 'סך הכל' || firstCol.includes('נעם') || firstCol.includes('max')) continue;
+
+    // עמודות MAX:
+    // 0: תאריך עסקה (DD-MM-YYYY)
+    // 1: שם בית העסק
+    // 2: קטגוריה
+    // 5: סכום חיוב
+
+    const dateStr = firstCol;
+    const desc = String(row[1] || '').trim();
+    const maxCat = String(row[2] || '').trim();
+    const amountStr = String(row[5] || '').trim();
+
+    // בדיקת תאריך
+    if (!/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) continue;
+
+    const date = normDate(dateStr);
+    if (!desc || desc.length < 2) continue;
+
+    const amount = parseFloat(amountStr.replace(/[^\d.]/g, ''));
+    if (!amount || amount <= 0) continue;
+
+    // מיפוי קטגוריה מ-MAX למערכת
+    let cat = MAX_CAT_MAP[maxCat] || autoCatImp(desc);
+
+    results.push({
+      desc,
+      amount,
+      date,
+      cat,
+      type: 'expense'
+    });
+  }
+
+  return results;
 }
 
 function renderImpPreview(items) {
