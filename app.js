@@ -362,7 +362,7 @@ function renderStocks(){const totVal=investments.reduce((s,i)=>s+iILS(i),0),totC
 function buildStkCharts(){const byType={};investments.forEach(i=>{byType[i.type]=(byType[i.type]||0)+iILS(i);});const keys=Object.keys(byType),vals=Object.values(byType),colors=keys.map(k=>ICOLOR[k]||'#8BA4BE'),total=vals.reduce((s,v)=>s+v,0)||1;const c1=document.getElementById('stk-donut')?.getContext('2d');if(c1){if(sDon)sDon.destroy();if(keys.length){sDon=new Chart(c1,{type:'doughnut',data:{labels:keys.map(k=>ITYPE[k]||k),datasets:[{data:vals,backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});document.getElementById('stk-dleg').innerHTML=keys.map((k,i)=>'<div class="dli"><span class="dd" style="background:'+colors[i]+'"></span><span>'+(ITYPE[k]||k)+'</span><span style="margin-right:auto;font-weight:700">'+Math.round(vals[i]/total*100)+'%</span></div>').join('');}}
   const c2=document.getElementById('stk-perf')?.getContext('2d');if(c2){if(sPerf)sPerf.destroy();const allM=[...new Set(investments.flatMap(i=>(i.history||[]).map(h=>h.month)))].sort().slice(-12);if(allM.length>1){const tots=allM.map(m=>investments.reduce((s,i)=>{const h=(i.history||[]).find(h=>h.month===m);const cv=iCurVal(i);return s+(h?(i.currency==='USD'?h.value*USD:h.value):(i.currency==='USD'?cv*USD:cv));},0));const HE=['','ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];sPerf=new Chart(c2,{type:'line',data:{labels:allM.map(m=>{const p=m.split('-');return HE[parseInt(p[1])]+' '+p[0].slice(2);}),datasets:[{data:tots,borderColor:'#4D9FFF',backgroundColor:'rgba(77,159,255,.08)',fill:true,pointBackgroundColor:'#4D9FFF',pointRadius:4,tension:0.4,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'₪'+Math.round(v/1000)+'K',font:{size:10},color:'#4A6480'},grid:{color:'rgba(255,255,255,.04)'},border:{display:false}},x:{ticks:{font:{size:10},color:'#4A6480'},grid:{display:false},border:{display:false}}}}});}}}
 
-function renderNetWorth(){const allSav=txns.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0),stkVal=investments.reduce((s,i)=>s+iILS(i),0),stkCost=investments.reduce((s,i)=>s+(i.cost||0),0),mt=curMt(),cash=Math.max(0,mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)-mt.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0)),total=allSav+stkVal+cash,stkPnL=stkVal-stkCost;document.getElementById('nw-stats').innerHTML='<div class="sc sc-glow"><div class="sl">שווי נטו כולל</div><div class="sv g">'+fmt(total)+'</div><div class="ss">כל הנכסים ביחד</div></div><div class="sc"><div class="sl">רווח השקעות</div><div class="sv '+(stkPnL>=0?'g':'r')+'">'+(stkPnL>=0?'+':'')+fmt(stkPnL)+'</div></div><div class="sc"><div class="sl">% השקעות מהנכסים</div><div class="sv">'+(total>0?Math.round(stkVal/total*100):0)+'%</div></div>';
+function renderNetWorth(){const allSav=txns.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0),stkVal=investments.reduce((s,i)=>s+iILS(i),0),stkCost=investments.reduce((s,i)=>s+(i.cost||0),0),mt=curMt(),cash=Math.max(0,mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)-mt.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0)),stkPnL=stkVal-stkCost;
   // עו"ש דינמי
   var ckBal=cash;
   if(typeof checkingData!=='undefined'&&checkingData.opening){
@@ -373,6 +373,9 @@ function renderNetWorth(){const allSav=txns.filter(t=>t.type==='savings').reduce
     var ckS=rel.filter(function(t){return t.type==='savings';}).reduce(function(s,t){return s+t.amount;},0);
     ckBal=checkingData.opening+ckI-ckE-ckS;
   }
+  // Use ckBal in total calculation (same as bot)
+  const total=allSav+stkVal+ckBal;
+  document.getElementById('nw-stats').innerHTML='<div class="sc sc-glow"><div class="sl">שווי נטו כולל</div><div class="sv g">'+fmt(total)+'</div><div class="ss">כל הנכסים ביחד</div></div><div class="sc"><div class="sl">רווח השקעות</div><div class="sv '+(stkPnL>=0?'g':'r')+'">'+(stkPnL>=0?'+':'')+fmt(stkPnL)+'</div></div><div class="sc"><div class="sl">% השקעות מהנכסים</div><div class="sv">'+(total>0?Math.round(stkVal/total*100):0)+'%</div></div>';
   const items=[{label:'כיס חיסכון',value:allSav,color:'#00E5A0',sub:'כסף שהפרשת לחיסכון'},{label:'תיק השקעות',value:stkVal,color:'#4D9FFF',sub:investments.length+' השקעות'},{label:'עו"ש',value:ckBal,color:'#FFB830',sub:typeof checkingData!=='undefined'&&checkingData.bank?checkingData.bank:'יתרה דינמית'}];
   document.getElementById('nw-breakdown').innerHTML=items.map(item=>{const pct=total>0?Math.round(item.value/total*100):0;return'<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+item.color+';margin-left:8px"></span>'+item.label+'</span><span><strong>'+fmt(item.value)+'</strong> <span style="color:var(--t3)">('+pct+'%)</span></span></div><div class="cbg"><div class="cbb" style="width:'+pct+'%;background:'+item.color+'"></div></div><div style="font-size:11px;color:var(--t3);margin-top:3px">'+item.sub+'</div></div>';}).join('');
   const c=document.getElementById('nw-donut')?.getContext('2d');if(c){if(nwDon)nwDon.destroy();const vals=items.map(i=>Math.max(0,i.value));if(vals.some(v=>v>0)){nwDon=new Chart(c,{type:'doughnut',data:{labels:items.map(i=>i.label),datasets:[{data:vals,backgroundColor:items.map(i=>i.color),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});document.getElementById('nw-dleg').innerHTML=items.map(item=>'<div class="dli"><span class="dd" style="background:'+item.color+'"></span><span>'+item.label+'</span><span style="margin-right:auto;font-weight:700">'+fmt(item.value)+'</span></div>').join('');}}
@@ -1120,20 +1123,20 @@ function processQuery(query) {
     console.log('DEBUG: investments =', investments);
     console.log('DEBUG: txns =', txns);
     
-    // Calculate using the same formula as renderNetWorth
+    // Calculate using the EXACT same formula as renderNetWorth
     const allSav = txns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
-    // Use iILS function to get current value (including profit/loss)
     const stkVal = investments ? investments.reduce((s, i) => s + iILS(i), 0) : 0;
+    const stkCost = investments ? investments.reduce((s, i) => s + (i.cost || 0), 0) : 0;
     
+    // Get current month transactions
+    const mt = curMt();
     // Calculate cash (current month income - expenses - savings)
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const currentMonthTxns = txns.filter(t => t.date.startsWith(currentMonth));
-    const monthlyIncome = currentMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const monthlyExpenses = currentMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-    const monthlySavings = currentMonthTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
-    const cash = Math.max(0, monthlyIncome - monthlyExpenses - monthlySavings);
+    const cash = Math.max(0, mt.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) - mt.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) - mt.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0));
     
-    // Calculate checking balance using the same formula as renderNetWorth
+    // Total using the same formula as renderNetWorth
+    const total = allSav + stkVal + cash;
+    
+    // Calculate checking balance for display (using opening date)
     let ckBal = cash;
     if (checkingData && checkingData.opening) {
       const od = checkingData.openingDate;
@@ -1144,10 +1147,9 @@ function processQuery(query) {
       ckBal = checkingData.opening + ckI - ckE - ckS;
     }
     
-    const total = allSav + stkVal + ckBal;
-    
     console.log('DEBUG: allSav =', allSav);
     console.log('DEBUG: stkVal =', stkVal);
+    console.log('DEBUG: cash =', cash);
     console.log('DEBUG: ckBal =', ckBal);
     console.log('DEBUG: total =', total);
     
