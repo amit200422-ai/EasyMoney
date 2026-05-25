@@ -1115,6 +1115,11 @@ function processQuery(query) {
 
   // Query: total balance
   if (q.includes('סך הכל') || q.includes('כמה כסף יש לי') || q.includes('יתרה כוללת')) {
+    console.log('DEBUG: checkingData =', checkingData);
+    console.log('DEBUG: savGoal =', savGoal);
+    console.log('DEBUG: investments =', investments);
+    console.log('DEBUG: txns =', txns);
+    
     const checkingBalance = (checkingData && checkingData.balance) || 0;
     // Use savGoal as the savings balance (the actual amount saved)
     const savingsBalance = (savGoal || 0);
@@ -1129,6 +1134,11 @@ function processQuery(query) {
     const monthlyIncome = currentMonthTxns.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const monthlyExpenses = currentMonthTxns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const netIncome = monthlyIncome - monthlyExpenses;
+    
+    console.log('DEBUG: checkingBalance =', checkingBalance);
+    console.log('DEBUG: savingsBalance =', savingsBalance);
+    console.log('DEBUG: stocksValue =', stocksValue);
+    console.log('DEBUG: netIncome =', netIncome);
     
     const total = checkingBalance + savingsBalance + stocksValue + netIncome;
     return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${checkingBalance.toLocaleString('he-IL')}, חסכון: ${savingsBalance.toLocaleString('he-IL')}, מניות: ${stocksValue.toLocaleString('he-IL')}, הכנסה נטו החודש: ${netIncome.toLocaleString('he-IL')}).`;
