@@ -1133,10 +1133,7 @@ function processQuery(query) {
     // Calculate cash (current month income - expenses - savings)
     const cash = Math.max(0, mt.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0) - mt.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0) - mt.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0));
     
-    // Total using the same formula as renderNetWorth
-    const total = allSav + stkVal + cash;
-    
-    // Calculate checking balance for display (using opening date)
+    // Calculate checking balance (using opening date)
     let ckBal = cash;
     if (checkingData && checkingData.opening) {
       const od = checkingData.openingDate;
@@ -1146,6 +1143,9 @@ function processQuery(query) {
       const ckS = rel.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
       ckBal = checkingData.opening + ckI - ckE - ckS;
     }
+    
+    // Total using ckBal (same as renderNetWorth)
+    const total = allSav + stkVal + ckBal;
     
     console.log('DEBUG: allSav =', allSav);
     console.log('DEBUG: stkVal =', stkVal);
