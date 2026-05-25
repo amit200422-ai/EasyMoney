@@ -861,13 +861,31 @@ function toggleChat() {
     body.innerHTML = '';
   }
 
-  // Show insights when opening the chat (only if body is empty)
+  // Show welcome message and insights when opening the chat (only if body is empty)
   if (wasCollapsed) {
     const body = document.getElementById('chat-body');
     if (body.children.length === 0) {
-      setTimeout(() => showInsightsOnOpen(), 300);
+      setTimeout(() => {
+        showWelcomeMessage();
+        showInsightsOnOpen();
+      }, 300);
     }
   }
+}
+
+function showWelcomeMessage() {
+  const body = document.getElementById('chat-body');
+  const welcomeMsg = document.createElement('div');
+  welcomeMsg.className = 'chat-message bot';
+  welcomeMsg.innerHTML = `שלום! אני כאן לעזור. שאל אותי על כל הנתונים שלך, למשל:
+      <br>• "כמה הוצאתי על אוכל החודש?"
+      <br>• "מה ההכנסות שלי?"
+      <br>• "כמה כסף יש לי בסך הכל?"
+      <br>• "תן לי תובנות והמלצות"
+      <br>• "מתי המנוי שלי נגמר?"
+      <br>• "מה המצב של המניות?"`;
+  body.appendChild(welcomeMsg);
+  body.scrollTop = body.scrollHeight;
 }
 
 // Generate proactive insights
@@ -1098,17 +1116,22 @@ function processQuery(query) {
   // Query: total balance
   if (q.includes('סך הכל') || q.includes('כמה כסף יש לי') || q.includes('יתרה כוללת')) {
     const checkingBalance = (checkingData && checkingData.balance) || 0;
-    // Calculate actual savings from transactions, not the goal
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const savingsTxns = txns.filter(t => t.cat === 'savings' && t.type === 'expense');
-    const actualSavings = savingsTxns.reduce((sum, t) => sum + t.amount, 0);
+    // Use savGoal as the savings balance (the actual amount saved)
+    const savingsBalance = (savGoal || 0);
     const stocksValue = investments ? investments.reduce((sum, s) => {
       const shares = parseFloat(s.shares) || 0;
-      const price = parseFloat(s.price) || parseFloat(s.currentPrice) || 0;
+      const price = parseFloat(s.price) || parseFloat(s.currentPrice) || parseFloat(s.value) || 0;
       return sum + (shares * price);
     }, 0) : 0;
-    const total = checkingBalance + actualSavings + stocksValue;
-    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${checkingBalance.toLocaleString('he-IL')}, חסכון: ${actualSavings.toLocaleString('he-IL')}, מניות: ${stocksValue.toLocaleString('he-IL')}).`;
+    // Calculate net income (income - expenses) for the current month
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const currentMonthTxns = txns.filter(t => t.date.startsWith(currentMonth));
+    const monthlyIncome = currentMonthTxns.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const monthlyExpenses = currentMonthTxns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const netIncome = monthlyIncome - monthlyExpenses;
+    
+    const total = checkingBalance + savingsBalance + stocksValue + netIncome;
+    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${checkingBalance.toLocaleString('he-IL')}, חסכון: ${savingsBalance.toLocaleString('he-IL')}, מניות: ${stocksValue.toLocaleString('he-IL')}, הכנסה נטו החודש: ${netIncome.toLocaleString('he-IL')}).`;
   }
 
   // Query: insights
