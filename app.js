@@ -1120,12 +1120,17 @@ function processQuery(query) {
     console.log('DEBUG: investments =', investments);
     console.log('DEBUG: txns =', txns);
     
-    const checkingBalance = (checkingData && checkingData.balance) || 0;
+    // checkingData has 'opening' instead of 'balance'
+    const checkingBalance = (checkingData && (checkingData.balance || checkingData.opening)) || 0;
     // Use savGoal as the savings balance (the actual amount saved)
     const savingsBalance = (savGoal || 0);
+    // Check investments structure
+    console.log('DEBUG: investments[0] =', investments ? investments[0] : 'no investments');
     const stocksValue = investments ? investments.reduce((sum, s) => {
+      console.log('DEBUG: investment item =', s);
       const shares = parseFloat(s.shares) || 0;
       const price = parseFloat(s.price) || parseFloat(s.currentPrice) || parseFloat(s.value) || 0;
+      console.log('DEBUG: shares =', shares, 'price =', price, 'product =', shares * price);
       return sum + (shares * price);
     }, 0) : 0;
     // Calculate net income (income - expenses) for the current month
