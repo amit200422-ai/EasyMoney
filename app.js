@@ -1122,11 +1122,8 @@ function processQuery(query) {
     
     // Calculate using the same formula as renderNetWorth
     const allSav = txns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
-    const stkVal = investments ? investments.reduce((s, i) => {
-      // Use iILS function to convert to ILS if needed
-      const cost = parseFloat(i.cost) || 0;
-      return s + cost;
-    }, 0) : 0;
+    // Use iILS function to get current value (including profit/loss)
+    const stkVal = investments ? investments.reduce((s, i) => s + iILS(i), 0) : 0;
     
     // Calculate cash (current month income - expenses - savings)
     const currentMonth = new Date().toISOString().slice(0, 7);
@@ -1154,7 +1151,7 @@ function processQuery(query) {
     console.log('DEBUG: ckBal =', ckBal);
     console.log('DEBUG: total =', total);
     
-    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${ckBal.toLocaleString('he-IL')}, חיסכון: ${allSav.toLocaleString('he-IL')}, השקעות: ${stkVal.toLocaleString('he-IL')}).`;
+    return `היתרה הכוללת היא ${total.toLocaleString('he-IL')} ₪ (עו"ש: ${ckBal.toLocaleString('he-IL')}, חסכון: ${allSav.toLocaleString('he-IL')}, השקעות: ${stkVal.toLocaleString('he-IL')}).`;
   }
 
   // Query: insights
