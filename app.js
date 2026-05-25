@@ -847,6 +847,155 @@ function renderSubscriptions(subs) {
   }).join('');
 }
 
+// ─── CHAT BOT ─────────────────────────────────────────────────────────
+function toggleChat() {
+  const chat = document.getElementById('chat-bot');
+  chat.classList.toggle('collapsed');
+  const toggle = chat.querySelector('.chat-toggle');
+  toggle.textContent = chat.classList.contains('collapsed') ? '+' : '−';
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  addChatMessage(message, 'user');
+  input.value = '';
+
+  // Show typing indicator
+  const typing = addChatMessage('מחשב...', 'bot', true);
+
+  setTimeout(() => {
+    typing.remove();
+    const response = processQuery(message);
+    addChatMessage(response, 'bot');
+  }, 500);
+}
+
+function addChatMessage(text, sender, isTyping = false) {
+  const body = document.getElementById('chat-body');
+  const msg = document.createElement('div');
+  msg.className = 'chat-message ' + sender;
+  if (isTyping) msg.id = 'typing-indicator';
+  msg.innerHTML = text;
+  body.appendChild(msg);
+  body.scrollTop = body.scrollHeight;
+  return msg;
+}
+
+function processQuery(query) {
+  const q = query.toLowerCase();
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentMonthTxns = txns.filter(t => t.date.startsWith(currentMonth));
+  const currentMonthExpenses = currentMonthTxns.filter(t => t.type === 'expense');
+  const currentMonthIncome = currentMonthTxns.filter(t => t.type === 'income');
+
+  // Query: spending by category this month
+  if (q.includes('הוצאתי') && q.includes('על') && q.includes('החודש')) {
+    for (const [catKey, catName] of Object.entries(CAT)) {
+      if (q.includes(catName) || q.includes(catKey)) {
+        const amount = currentMonthExpenses.filter(t => t.cat === catKey).reduce((sum, t) => sum + t.amount, 0);
+        return `הוצאתי ${amount.toLocaleString('he-IL')} ₪ על ${catName} החודש.`;
+      }
+    }
+  }
+
+  // Query: total spending this month
+  if (q.includes('הוצאתי') && q.includes('בסה"כ') || q.includes('סה"כ ההוצאות')) {
+    const total = currentMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+    return `הוצאתי ${total.toLocaleString('he-IL')} ₪ בסה"כ החודש.`;
+  }
+
+  // Query: income this month
+  if (q.includes('הכנסתי') || q.includes('הכנסות') || q.includes('העושר')) {
+    const total = currentMonthIncome.reduce((sum, t) => sum + t.amount, 0);
+    return `הכנסתי ${total.toLocaleString('he-IL')} ₪ החודש.`;
+  }
+
+  // Query: net balance (income - expenses)
+  if (q.includes('מאזן') || q.includes('יתרה') || q.includes('נטו')) {
+    const income = currentMonthIncome.reduce((sum, t) => sum + t.amount, 0);
+    const expenses = currentMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+    const net = income - expenses;
+    return `המאזן החודשי הוא ${net.toLocaleString('he-IL')} ₪ (הכנסה: ${income.toLocaleString('he-IL')}, הוצאה: ${expenses.toLocaleString('he-IL')}).`;
+  }
+
+  // Query: savings
+  if (q.includes('חסכון') || q.includes('חיסכון')) {
+    const totalSavings = (savGoal || 0);
+    return `יעד החסכון שלי הוא ${totalSavings.toLocaleString('he-IL')} ₪.`;
+  }
+
+  // Query: stocks
+  if (q.includes('מניות') || q.includes('שוק ההון') || q.includes('השקעות')) {
+    if (!investments || investments.length === 0) return 'אין מניות בתיק ההשקעות.';
+    const totalValue = investments.reduce((sum, s) => sum + (s.shares * (s.price || 0)), 0);
+    return `יש לי ${investments.length} מניות בתיק ההשקעות בשווי כולל של ${totalValue.toLocaleString('he-IL')} ₪.`;
+  }
+
+  // Query: budget
+  if (q.includes('תקציב') || q.includes('באדגט')) {
+    if (!budgets || budgets.length === 0) return 'אין תקציבים מוגדרים.';
+    const totalBudget = budgets.reduce((sum, b) => sum + (b.amount || 0), 0);
+    return `התקציב החודשי הכולל הוא ${totalBudget.toLocaleString('he-IL')} ₪.`;
+  }
+
+  // Query: highest expense
+  if (q.includes('הכי גבוהה') || q.includes('הגדולה ביותר')) {
+    if (currentMonthExpenses.length === 0) return 'אין הוצאות החודש.';
+    const max = currentMonthExpenses.reduce((a, b) => a.amount > b.amount ? a : b);
+    return `ההוצאה הכי גבוהה החודש היא ${max.desc} (${max.amount.toLocaleString('he-IL')} ₪).`;
+  }
+
+  // Query: spending on food
+  if (q.includes('אוכל') || q.includes('מסעדה')) {
+    const amount = currentMonthExpenses.filter(t => t.cat === 'food').reduce((sum, t) => sum + t.amount, 0);
+    return `הוצאתי ${amount.toLocaleString('he-IL')} ₪ על אוכל החודש.`;
+  }
+
+  // Query: spending on transport
+  if (q.includes('תחבורה') || q.includes('דלק') || q.includes('נסיעה')) {
+    const amount = currentMonthExpenses.filter(t => t.cat === 'transport').reduce((sum, t) => sum + t.amount, 0);
+    return `הוצאתי ${amount.toLocaleString('he-IL')} ₪ על תחבורה החודש.`;
+  }
+
+  // Query: monthly comparison
+  if (q.includes('השוואה') || q.includes('ביחס ל') || q.includes('לעומת')) {
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    const lastMonthStr = lastMonth.toISOString().slice(0, 7);
+    const lastMonthExpenses = txns.filter(t => t.date.startsWith(lastMonthStr) && t.type === 'expense');
+    
+    const currentTotal = currentMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+    const lastTotal = lastMonthExpenses.reduce((sum, t) => sum + t.amount, 0);
+    
+    if (lastTotal === 0) return `הוצאתי ${currentTotal.toLocaleString('he-IL')} ₪ החודש. אין נתונים להשוואה עם החודש הקודם.`;
+    
+    const diff = currentTotal - lastTotal;
+    const diffPercent = ((diff / lastTotal) * 100).toFixed(1);
+    const direction = diff > 0 ? 'עלייה' : 'ירידה';
+    
+    return `החודש הוצאתי ${currentTotal.toLocaleString('he-IL')} ₪ לעומת ${lastTotal.toLocaleString('he-IL')} ₪ בחודש הקודם (${direction} של ${Math.abs(diffPercent)}%).`;
+  }
+
+  // Query: number of transactions
+  if (q.includes('כמה עסקאות') || q.includes('כמה תנועות')) {
+    return `ביצעתי ${currentMonthTxns.length} עסקאות החודש (${currentMonthExpenses.length} הוצאות, ${currentMonthIncome.length} הכנסות).`;
+  }
+
+  // Query: subscriptions
+  if (q.includes('מנויים') || q.includes('הרשמות')) {
+    if (!subscriptions || subscriptions.length === 0) return 'אין מנויים מוגדרים.';
+    const activeSubs = subscriptions.filter(s => s.active);
+    const monthlyCost = activeSubs.reduce((sum, s) => sum + (s.price || 0), 0);
+    return `יש לי ${activeSubs.length} מנויים פעילים בעלות חודשית של ${monthlyCost.toLocaleString('he-IL')} ₪.`;
+  }
+
+  // Default response
+  return 'לא הבנתי את השאלה. נסה לשאול על: הוצאות, הכנסות, חסכון, מניות, תקציב, מנויים, או השוואה בין חודשים.';
+}
+
 function changePass() {
   const p1 = document.getElementById('new-pass').value;
   const p2 = document.getElementById('new-pass2').value;
