@@ -1253,9 +1253,50 @@ async function initApp(){
   if(!loaded) load();
 
   renderAll();
+  applyPrivacyMode();
+}
+
+// Privacy Mode - blur all numbers and amounts
+let privacyMode = localStorage.getItem('privacyMode') === 'true';
+
+function togglePrivacyMode() {
+  privacyMode = !privacyMode;
+  localStorage.setItem('privacyMode', privacyMode);
+  applyPrivacyMode();
+}
+
+function applyPrivacyMode() {
+  const btn = document.getElementById('privacy-btn');
+  const lbl = document.getElementById('privacy-lbl');
+  
+  if (privacyMode) {
+    btn.classList.add('active');
+    lbl.textContent = 'Privacy On';
+    // Add blur to all monetary values and numbers
+    document.querySelectorAll('.ck-bal, .sv, .bv, .cav, .cap, .imp-amt, .mv, .inv-sv, .ins-v, .sub-amt').forEach(el => {
+      el.classList.add('privacy-blur');
+    });
+    // Also blur table cells with amounts
+    document.querySelectorAll('td:nth-child(4), td:nth-child(5)').forEach(el => {
+      el.classList.add('privacy-blur');
+    });
+  } else {
+    btn.classList.remove('active');
+    lbl.textContent = 'Privacy Mode';
+    // Remove blur from all elements
+    document.querySelectorAll('.privacy-blur').forEach(el => {
+      el.classList.remove('privacy-blur');
+    });
+  }
+}
+
+// Initialize privacy mode on load
+function initPrivacyMode() {
+  applyPrivacyMode();
 }
 
 // Initialize app immediately
 document.addEventListener('DOMContentLoaded', function() {
   initApp();
+  initPrivacyMode();
 });
