@@ -1272,13 +1272,22 @@ function applyPrivacyMode() {
   if (privacyMode) {
     btn.classList.add('active');
     lbl.textContent = 'Privacy On';
-    // Add blur to all monetary values and numbers
-    document.querySelectorAll('.ck-bal, .sv, .bv, .cav, .cap, .imp-amt, .mv, .inv-sv, .ins-v, .sub-amt').forEach(el => {
+    // Add blur to all monetary values and numbers across all pages
+    document.querySelectorAll('.ck-bal, .sv, .bv, .cav, .cap, .imp-amt, .mv, .inv-sv, .ins-v, .sub-amt, .inv-sv, .stk-val, .nw-val, .bud-val, .rec-val').forEach(el => {
       el.classList.add('privacy-blur');
     });
     // Also blur table cells with amounts
     document.querySelectorAll('td:nth-child(4), td:nth-child(5)').forEach(el => {
       el.classList.add('privacy-blur');
+    });
+    // Blur all numeric values in cards and stats
+    document.querySelectorAll('.sc, .bal, .inv-card, .budrow, .sub-card').forEach(el => {
+      el.querySelectorAll('div').forEach(div => {
+        const text = div.textContent.trim();
+        if (text.match(/[₪$€£]\s*\d+/) || text.match(/^\d+[\.,]?\d*$/) || text.includes('₪')) {
+          div.classList.add('privacy-blur');
+        }
+      });
     });
   } else {
     btn.classList.remove('active');
