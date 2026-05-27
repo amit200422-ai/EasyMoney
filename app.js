@@ -1290,12 +1290,24 @@ function applyPrivacyMode() {
     });
     // Blur all numeric values in cards and stats
     document.querySelectorAll('.sc, .bal, .inv-card, .budrow, .sub-card').forEach(el => {
-      el.querySelectorAll('div').forEach(div => {
+      el.querySelectorAll('div, span, strong').forEach(div => {
         const text = div.textContent.trim();
         if (text.match(/[₪$€£]\s*\d+/) || text.match(/^\d+[\.,]?\d*$/) || text.includes('₪')) {
           div.classList.add('privacy-blur');
         }
       });
+    });
+    // Blur net worth breakdown and detail sections
+    document.querySelectorAll('#nw-breakdown strong, #nw-detail strong, #nw-dleg span').forEach(el => {
+      el.classList.add('privacy-blur');
+    });
+    // Blur subscription prices and stats
+    document.querySelectorAll('#sub-stats .sv, #sub-list span[style*="font-weight:800"]').forEach(el => {
+      el.classList.add('privacy-blur');
+    });
+    // Blur savings amounts
+    document.querySelectorAll('#sav-big, #sav-gl, #sav-fc strong, #emergency').forEach(el => {
+      el.classList.add('privacy-blur');
     });
   } else {
     btn.classList.remove('active');
