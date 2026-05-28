@@ -1,4 +1,4 @@
-איפה אני מוסיף אופציה לקרן כספית? שתעשה את החישוב המתמטי// Firebase Configuration
+// Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBPYX5IGfEf6aHMjUNAaComLa_PLYc9jQA",
   authDomain: "save-it-7be2b.firebaseapp.com",
