@@ -1298,7 +1298,7 @@ function applyPrivacyMode() {
       });
     });
     // Blur net worth breakdown and detail sections
-    document.querySelectorAll('#nw-breakdown strong, #nw-detail strong, #nw-dleg span').forEach(el => {
+    document.querySelectorAll('#nw-breakdown strong, #nw-detail strong, #nw-detail span[style*="font-weight:700"], #nw-dleg span').forEach(el => {
       el.classList.add('privacy-blur');
     });
     // Blur subscription prices and stats
