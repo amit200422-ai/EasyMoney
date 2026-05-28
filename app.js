@@ -366,8 +366,8 @@ async function syncMarketData() {
     if (!inv.ticker) continue;
     
     try {
-      // Check if it's an Israeli mutual fund number (starts with 3 digits)
-      const isIsraeliFund = /^\d{3}-\d+$/.test(inv.ticker);
+      // Check if it's an Israeli mutual fund number (7 digits or 3 digits-dash-digits)
+      const isIsraeliFund = /^\d{7}$/.test(inv.ticker) || /^\d{3}-\d+$/.test(inv.ticker);
       
       // For money market funds (savings_plan), use mathematical calculation
       if (inv.type === 'savings_plan') {
