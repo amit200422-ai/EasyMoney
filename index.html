@@ -18,7 +18,7 @@
 <link rel="manifest" id="pwa-manifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="כסף חכם">
-<script src="app.js?v=25"></script>
+<script src="app.js?v=26"></script>
 </head>
 <body>
 <!-- LOCK SCREEN -->
@@ -175,7 +175,7 @@
 </div>
 
 <div id="page-stocks" class="page">
-  <div class="ph"><div><div class="pt">תיק השקעות</div><div class="pt-sub">עדכן ידנית את שווי ההשקעות שלך בכל חודש</div></div><div style="display:flex;gap:8px"><button class="btn btn-g btn-sm" id="sync-btn" onclick="syncMarketData()">סנכרון שוק</button><button class="btn btn-g btn-sm" onclick="openAddInv()">+ הוסף / עדכן</button></div></div>
+  <div class="ph"><div><div class="pt">תיק השקעות</div><div class="pt-sub">עדכן ידנית את שווי ההשקעות שלך בכל חודש</div></div><button class="btn btn-g btn-sm" onclick="openAddInv()">+ הוסף / עדכן</button></div>
   <div class="g3" id="stk-stats"></div>
   <div id="stk-list"></div>
   <div class="g2">
@@ -356,14 +356,13 @@
   <div style="font-size:12px;color:var(--t2);margin-bottom:1rem;line-height:1.6;background:var(--gl);border-radius:var(--rs);padding:8px 10px;border:1px solid rgba(0,229,160,.2)">💡 להוסיף חדש — הזן שם חדש. לעדכן קיים — הזן את אותו שם. השווי החודשי יישמר בהיסטוריה.</div>
   <div class="frow"><div class="fi"><label>שם ההשקעה</label><input type="text" id="inv-name" placeholder="קרן פנסיה, תיק מניות, נדל&quot;ן..."></div></div>
   <div class="frow">
-    <div class="fi"><label>קטגוריה</label><select id="inv-type"><option value="pension">פנסיה / גמל</option><option value="stock">מניות / ETF</option><option value="realestate">נדל"ן</option><option value="savings_plan">חיסכון</option><option value="crypto">קריפטו</option><option value="other">אחר</option></select></div>
+    <div class="fi"><label>קטגוריה</label><select id="inv-type"><option value="pension">פנסיה / גמל</option><option value="stock">מניות / ETF</option><option value="realestate">נדל"ן</option><option value="savings_plan">חיסכון</option><option value="money_market">קרן כספית</option><option value="crypto">קריפטו</option><option value="other">אחר</option></select></div>
     <div class="fi"><label>מטבע</label><select id="inv-cur"><option value="ILS">₪ שקל</option><option value="USD">$ דולר</option></select></div>
   </div>
   <div class="frow">
     <div class="fi"><label>עלות / השקעה מקורית</label><input type="number" id="inv-cost" placeholder="0" inputmode="decimal"></div>
     <div class="fi"><label>שווי נוכחי</label><input type="number" id="inv-value" placeholder="0" inputmode="decimal"></div>
   </div>
-  <div class="frow"><div class="fi"><label>סמל טיקר / מספר קרן סל (אופציונלי)</label><input type="text" id="inv-ticker" placeholder="למשל: 1159250, 512-123456, SPY, AAPL"></div></div>
   <div class="frow"><div class="fi"><label>חודש</label><input type="month" id="inv-month"></div></div>
   <div class="modal-act"><button class="btn" onclick="closeModal('inv-modal')">ביטול</button><button class="btn btn-g" onclick="saveInv()">שמור</button></div>
 </div></div>
