@@ -172,8 +172,10 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .ins-v{font-size:17px;font-weight:800}
 .ins-s{font-size:11px;color:var(--t3);margin-top:4px}
 /* MOBILE NAV */
-.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:70px;background:var(--card);border-top:1px solid var(--border);z-index:100;justify-content:space-around;align-items:center;padding:0 8px;backdrop-filter:blur(10px)}
-.mn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:transparent;color:var(--t3);font-family:'Heebo',sans-serif;transition:all .15s;min-width:64px;min-height:60px}
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:70px;background:var(--card);border-top:1px solid var(--border);z-index:100;align-items:center;padding:0 8px;backdrop-filter:blur(10px);overflow-x:auto;overflow-y:hidden;gap:4px}
+.mob-nav::-webkit-scrollbar{height:3px}
+.mob-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:transparent;color:var(--t3);font-family:'Heebo',sans-serif;transition:all .15s;min-width:64px;min-height:60px;flex-shrink:0}
 .mn svg{width:24px;height:24px}
 .mn span{font-size:11px;font-weight:700}
 .mn.active{color:var(--green);background:var(--gll)}
@@ -304,9 +306,7 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .chat-bot.collapsed .chat-input{display:none}
 .chat-bot.collapsed .chat-toggle{transform:rotate(180deg)}
 /* Mobile Chat Icon */
-.chat-icon{display:none;position:fixed;top:20px;right:20px;width:50px;height:50px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:50%;box-shadow:0 4px 20px rgba(0,229,160,0.4);z-index:1001;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s}
-.chat-icon:active{transform:scale(0.9)}
-.chat-icon svg{width:28px;height:28px;color:#0B1120}
+.chat-icon{display:none}
 /* PRIVACY MODE */
 .privacy-blur{filter:blur(5px);user-select:none;transition:filter .3s ease}
 .privacy-blur:hover{filter:blur(0)}
