@@ -299,6 +299,13 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 /* APP CONTAINER (Hidden until login) */
 #app-container{display:none}
 
+/* AI PAGE */
+.chat-page{display:flex;flex-direction:column;height:calc(100vh - 180px)}
+.chat-body-page{flex:1;overflow-y:auto;padding:16px;min-height:300px}
+.chat-input-area{display:flex;gap:8px;padding:16px;border-top:1px solid var(--border);background:var(--card)}
+.chat-input-area input{flex:1;padding:12px 14px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:14px;font-family:'Heebo',sans-serif}
+.chat-input-area button{min-width:80px}
+
 /* CHAT BOT */
 .chat-bot-wrapper-desktop{display:block}
 .chat-bot{position:fixed;bottom:20px;left:20px;width:320px;max-width:calc(100vw-40px);background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:1000;font-family:'Heebo',sans-serif;display:block}

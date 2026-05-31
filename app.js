@@ -374,7 +374,7 @@ function nav(page,btn){
   document.querySelectorAll('.ni,.mn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   if(btn)btn.classList.add('active');
-  const fns={monthly:()=>{buildMonthly();buildDonut();renderCmpSec();},budget:renderBudget,savings:renderSavings,recurring:renderRecurring,stocks:()=>{renderStocks();buildStkCharts();},networth:renderNetWorth,analysis:()=>{renderInsights();buildTrend();populateCmp();renderCmp();renderAllTop5();},tips:renderTips,import:()=>{selectBank('isracard');},subscriptions:()=>{renderSubscriptions(subscriptions);}};
+  const fns={monthly:()=>{buildMonthly();buildDonut();renderCmpSec();},budget:renderBudget,savings:renderSavings,recurring:renderRecurring,stocks:()=>{renderStocks();buildStkCharts();},networth:renderNetWorth,analysis:()=>{renderInsights();buildTrend();populateCmp();renderCmp();renderAllTop5();},tips:renderTips,import:()=>{selectBank('isracard');},subscriptions:()=>{renderSubscriptions(subscriptions);},ai:showWelcomeMessagePage};
   if(fns[page])setTimeout(fns[page],50);
   // Apply privacy mode after navigation
   setTimeout(applyPrivacyMode, 100);
@@ -1077,6 +1077,50 @@ function toggleChatMobile() {
       showInsightsOnOpen();
     }, 300);
   }
+}
+
+// AI Page functions
+window.sendChatPage = function() {
+  const input = document.getElementById('chat-input-page');
+  const body = document.getElementById('chat-body-page');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  // Add user message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-message user';
+  userMsg.textContent = msg;
+  body.appendChild(userMsg);
+  
+  input.value = '';
+  body.scrollTop = body.scrollHeight;
+  
+  // Simulate bot response
+  setTimeout(() => {
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-message bot';
+    botMsg.innerHTML = 'אני עובד על תשובה... (זה עמוד AI חדש)';
+    body.appendChild(botMsg);
+    body.scrollTop = body.scrollHeight;
+  }, 500);
+};
+
+// Show welcome message on AI page
+function showWelcomeMessagePage() {
+  const body = document.getElementById('chat-body-page');
+  if (!body) return;
+  
+  body.innerHTML = '';
+  const welcomeMsg = document.createElement('div');
+  welcomeMsg.className = 'chat-message bot';
+  welcomeMsg.innerHTML = `שלום! אני כאן לעזור. שאל אותי על כל הנתונים שלך, למשל:
+      <br>• "כמה הוצאתי על אוכל החודש?"
+      <br>• "מה ההכנסות שלי?"
+      <br>• "כמה כסף יש לי בסך הכל?"
+      <br>• "תן לי תובנות והמלצות"
+      <br>• "מתי המנוי שלי נגמר?"
+      <br>• "מה המצב של המניות?"`;
+  body.appendChild(welcomeMsg);
 }
 
 function showWelcomeMessage() {
