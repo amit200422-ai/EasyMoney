@@ -75,7 +75,7 @@ window.firebaseSave = async function(data) {
     return;
   }
   try {
-    console.log('Firebase save to:', userKey, 'data:', data);
+    console.log('Firebase save to:', userKey, 'data keys:', Object.keys(data));
     await db.ref(userKey).set(data);
     console.log('Firebase save successful');
   } catch(e) {
@@ -85,10 +85,19 @@ window.firebaseSave = async function(data) {
 
 // Firebase load function
 window.firebaseLoad = async function() {
-  if (!userKey) return null;
+  if (!userKey) {
+    console.warn('Firebase load skipped: no userKey');
+    return null;
+  }
   try {
+    console.log('Firebase load from:', userKey);
     const s = await db.ref(userKey).get();
-    if (s.exists()) return s.val();
+    if (s.exists()) {
+      console.log('Firebase load successful, data keys:', Object.keys(s.val()));
+      return s.val();
+    } else {
+      console.log('Firebase load: no data exists at', userKey);
+    }
   } catch(e) {
     console.error('Firebase load error:', e);
   }
@@ -146,6 +155,22 @@ auth.onAuthStateChanged((user) => {
     // Hide login screen and show app
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
+    // Force load from Firebase to ensure latest data
+    if(window.firebaseLoad){
+      window.firebaseLoad().then(fbData => {
+        if(fbData && fbData.txns){
+          txns = fbData.txns || [];
+          budgets = fbData.budgets || {};
+          savGoal = fbData.savGoal || 10000;
+          recurring = fbData.recurring || [];
+          investments = fbData.investments || [];
+          if(fbData.checkingData) checkingData = fbData.checkingData;
+          if(fbData.subscriptions) subscriptions = fbData.subscriptions;
+          console.log('Force loaded from Firebase on auth change');
+          renderAll();
+        }
+      });
+    }
     showApp();
   } else {
     // Show login screen and hide app
