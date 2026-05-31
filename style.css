@@ -285,7 +285,7 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 @keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
 
 /* CHAT BOT */
-.chat-bot{position:fixed;bottom:20px;left:20px;width:320px;max-width:calc(100vw-40px);background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:1000;font-family:'Heebo',sans-serif}
+.chat-bot{position:fixed;bottom:20px;left:20px;width:320px;max-width:calc(100vw-40px);background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:1000;font-family:'Heebo',sans-serif;display:block}
 .chat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:16px 16px 0 0;cursor:pointer}
 .chat-header span:first-child{font-size:14px;font-weight:700;color:#0B1120}
 .chat-toggle{font-size:18px;font-weight:700;color:#0B1120;transition:transform .2s}
