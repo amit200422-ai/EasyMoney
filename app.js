@@ -422,7 +422,7 @@ function buildDonut(){const mt=curMt().filter(t=>t.type==='expense'),totals={};m
 
 function renderCmpSec(){const now=new Date(),tMk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'),prev=new Date(now.getFullYear(),now.getMonth()-1,1),pMk=prev.getFullYear()+'-'+String(prev.getMonth()+1).padStart(2,'0');const s=m=>({inc:mTxns(m).filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),exp:mTxns(m).filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)});const a=s(tMk),b=s(pMk),di=b.inc>0?Math.round((a.inc-b.inc)/b.inc*100):0,de=b.exp>0?Math.round((a.exp-b.exp)/b.exp*100):0;document.getElementById('cmp-sec').innerHTML='<div style="font-size:12px;color:var(--t2);margin-bottom:12px">החודש מול חודש שעבר</div><div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span>הכנסות</span><div style="display:flex;gap:8px;align-items:center"><span style="font-weight:700">'+fmt(a.inc)+'</span><span class="chg '+(di>=0?'cup':'cdn')+'">'+(di>=0?'+':'')+di+'%</span></div></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span>הוצאות</span><div style="display:flex;gap:8px;align-items:center"><span style="font-weight:700">'+fmt(a.exp)+'</span><span class="chg '+(de<=0?'cup':'cdn')+'">'+(de>=0?'+':'')+de+'%</span></div></div></div>';applyPrivacyMode();}
 
-function renderBudget(){const mt=curMt(),now=new Date(),day=now.getDate(),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();const rows=['food','transport','housing','utilities','health','entertainment','other'].filter(c=>budgets[c]).map(c=>{const spent=mt.filter(t=>t.type==='expense'&&t.cat===c).reduce((s,t)=>s+t.amount,0),bud=budgets[c],pct=Math.min(100,Math.round(spent/bud*100)),over=spent>bud;return'<div class="budrow"><span class="pill '+(CPILL[c]||'p-other')+'" style="min-width:70px">'+(CAT[c]||c)+'</span><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>'+fmt(spent)+' / '+fmt(bud)+'</span><span style="font-weight:700;color:'+(over?'var(--red)':'var(--t2)')+'">'+pct+'%'+(over?' ⚠':'')+'</span></div><div class="budbg"><div class="budb" style="width:'+pct+'%;background:'+(over?'var(--red)':'var(--green)')+'"></div></div></div></div>';});document.getElementById('bud-list').innerHTML=rows.length?rows.join(''):'<div style="text-align:center;padding:2rem;color:var(--t3);font-size:13px">לא הוגדרו תקציבים</div>';const expSF=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),rate=day>0?expSF/day:0,proj=Math.round(rate*dim),incM=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);document.getElementById('forecast').innerHTML='<div style="font-size:13px;margin-bottom:6px">קצב יומי: <strong>'+fmt(Math.round(rate))+'</strong></div><div style="font-size:13px;margin-bottom:6px">חיזוי סוף חודש: <strong style="color:'+(proj>incM?'var(--red)':'var(--green)')+'">'+fmt(proj)+'</strong></div><div style="font-size:12px;color:var(--t3)">'+(proj>incM?'⚠ הוצאות צפויות לחרוג מהכנסות':'✓ הוצאות בגבולות')+'</div>';applyPrivacyMode();}
+function renderBudget(){const mt=curMt(),now=new Date(),day=now.getDate(),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();const rows=['food','transport','housing','utilities','health','entertainment','other'].filter(c=>budgets[c]).map(c=>{const spent=mt.filter(t=>t.type==='expense'&&t.cat===c).reduce((s,t)=>s+t.amount,0),bud=budgets[c],pct=Math.min(100,Math.round(spent/bud*100)),over=spent>bud;if(over)checkBudgetOverspending(c,spent,bud);return'<div class="budrow"><span class="pill '+(CPILL[c]||'p-other')+'" style="min-width:70px">'+(CAT[c]||c)+'</span><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>'+fmt(spent)+' / '+fmt(bud)+'</span><span style="font-weight:700;color:'+(over?'var(--red)':'var(--t2)')+'">'+pct+'%'+(over?' ⚠':'')+'</span></div><div class="budbg"><div class="budb" style="width:'+pct+'%;background:'+(over?'var(--red)':'var(--green)')+'"></div></div></div></div>';});document.getElementById('bud-list').innerHTML=rows.length?rows.join(''):'<div style="text-align:center;padding:2rem;color:var(--t3);font-size:13px">לא הוגדרו תקציבים</div>';const expSF=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),rate=day>0?expSF/day:0,proj=Math.round(rate*dim),incM=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);document.getElementById('forecast').innerHTML='<div style="font-size:13px;margin-bottom:6px">קצב יומי: <strong>'+fmt(Math.round(rate))+'</strong></div><div style="font-size:13px;margin-bottom:6px">חיזוי סוף חודש: <strong style="color:'+(proj>incM?'var(--red)':'var(--green)')+'">'+fmt(proj)+'</strong></div><div style="font-size:12px;color:var(--t3)">'+(proj>incM?'⚠ הוצאות צפויות לחרוג מהכנסות':'✓ הוצאות בגבולות')+'</div>';applyPrivacyMode();}
 function saveBudget(){const cat=document.getElementById('bud-cat').value,amt=parseFloat(document.getElementById('bud-amt').value);if(!cat||!amt||amt<=0)return;budgets[cat]=amt;document.getElementById('bud-amt').value='';save();renderBudget();toast('✓ תקציב נשמר','green');}
 
 function renderSavings(){const total=txns.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0);document.getElementById('sav-big').textContent=fmt(total);const pct=Math.min(100,Math.round(total/savGoal*100));document.getElementById('sav-pg').style.width=pct+'%';document.getElementById('sav-gl').textContent='יעד: '+fmt(savGoal)+' ('+pct+'%)';document.getElementById('sav-gi').value=savGoal;const mExp=curMt().filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),em=mExp>0?Math.round(total/mExp*10)/10:0;document.getElementById('emergency').textContent='קרן חירום: '+em+' חודשי הוצאות שמורים (מומלץ: 3-6 חודשים)';const mSav=curMt().filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0),rem=savGoal-total,fc=document.getElementById('sav-fc');if(mSav>0&&rem>0)fc.innerHTML='<div style="font-size:13px">בקצב '+fmt(mSav)+'/חודש — תגיע ליעד בעוד <strong style="color:var(--green)">'+Math.ceil(rem/mSav)+' חודשים</strong></div>';else if(rem<=0)fc.innerHTML='<div style="font-size:14px;font-weight:700;color:var(--green)">🎉 הגעת ליעד!</div>';else fc.innerHTML='<div style="font-size:13px;color:var(--t3)">הוסף חיסכון החודש לחיזוי</div>';const hist=[...txns].filter(t=>t.type==='savings').sort((a,b)=>new Date(b.date)-new Date(a.date));document.getElementById('sav-tbody').innerHTML=hist.length?hist.map(t=>txnRow(t,true)).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--t3)">אין תנועות חיסכון</td></tr>';applyPrivacyMode();}
@@ -535,6 +535,13 @@ function renderTips(){const mt=curMt(),inc=mt.filter(t=>t.type==='income').reduc
   const entSubCost = entSubs ? entSubs.reduce((sum, s) => sum + (s.price || 0), 0) : 0;
   if(entSubCost > 0)tips.push({type:'info',icon:'📺',t:'בדוק מנויים',b:'יש לך מנויי בידור בעלות חודשית של '+fmt(entSubCost)+' ₪. שקול לבטל מנויים שאינם בשימוש.'});
   else if(ent>600)tips.push({type:'info',icon:'📺',t:'הוצאות בידור גבוהות',b:'בידור עלה '+fmt(ent)+' החודש.'});
+  // Credit card upload reminder
+  const nextCCDate = getNextCreditCardUploadDate();
+  if(nextCCDate){
+    const daysLeft = Math.ceil((nextCCDate - new Date()) / (1000 * 60 * 60 * 24));
+    if(daysLeft <= 2)tips.push({type:'info',icon:'💳',t:'העלאת קובץ אשראי',b:'ההעלאה הבאה בעוד '+daysLeft+' ימים'});
+    else tips.push({type:'info',icon:'💳',t:'העלאת קובץ אשראי',b:'ההעלאה הבאה ב-'+nextCCDate.toLocaleDateString('he-IL')});
+  }
   const em=exp>0?Math.round(allSav/exp*10)/10:0;
   if(em<3)tips.push({type:'info',icon:'🛡️',t:'קרן חירום נמוכה',b:'יש לך '+em+' חודשי הוצאות. מומלץ להגיע ל-3-6 חודשים.'});
   else tips.push({type:'ok',icon:'🛡️',t:'קרן חירום טובה',b:'יש לך '+em+' חודשי הוצאות שמורים — מצוין!'});
@@ -843,6 +850,7 @@ function confirmImp() {
   });
   pendingImport=[];
   document.getElementById('imp-preview').style.display='none';
+  updateCreditCardUploadDate();
   renderAll();
   toast('✓ יובאו '+added+' עסקאות!','green');
   // Auto scan subscriptions after import
@@ -1458,6 +1466,207 @@ function applyPrivacyMode() {
   }
 }
 
+// ─── NOTIFICATIONS SYSTEM ─────────────────────────────────────────────────────
+let notificationPermission = 'default';
+
+// Request notification permissions
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('This browser does not support notifications');
+    return false;
+  }
+  
+  if (notificationPermission === 'granted') {
+    return true;
+  }
+  
+  try {
+    notificationPermission = await Notification.requestPermission();
+    return notificationPermission === 'granted';
+  } catch (error) {
+    console.error('Error requesting notification permission:', error);
+    return false;
+  }
+}
+
+// Send a notification
+function sendNotification(title, body, options = {}) {
+  if (notificationPermission !== 'granted') {
+    return false;
+  }
+  
+  try {
+    const notification = new Notification(title, {
+      body: body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>',
+      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>',
+      vibrate: [200, 100, 200],
+      ...options
+    });
+    
+    notification.onclick = function() {
+      window.focus();
+      notification.close();
+    };
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    return false;
+  }
+}
+
+// Credit card upload reminder
+let lastCreditCardUpload = localStorage.getItem('kc3_last_cc_upload');
+const CREDIT_CARD_REMINDER_DAYS = 5;
+
+function updateCreditCardUploadDate() {
+  const now = new Date().toISOString();
+  localStorage.setItem('kc3_last_cc_upload', now);
+  lastCreditCardUpload = now;
+  scheduleCreditCardReminder();
+}
+
+function scheduleCreditCardReminder() {
+  if (!lastCreditCardUpload) {
+    lastCreditCardUpload = localStorage.getItem('kc3_last_cc_upload');
+  }
+  
+  if (!lastCreditCardUpload) {
+    // First time, set to now
+    updateCreditCardUploadDate();
+    return;
+  }
+  
+  const lastUpload = new Date(lastCreditCardUpload);
+  const nextReminder = new Date(lastUpload);
+  nextReminder.setDate(nextReminder.getDate() + CREDIT_CARD_REMINDER_DAYS);
+  
+  // Check if we need to schedule a reminder
+  const now = new Date();
+  const timeUntilReminder = nextReminder - now;
+  
+  if (timeUntilReminder > 0) {
+    // Clear any existing timeout
+    if (window.creditCardReminderTimeout) {
+      clearTimeout(window.creditCardReminderTimeout);
+    }
+    
+    // Schedule the reminder
+    window.creditCardReminderTimeout = setTimeout(() => {
+      sendNotification(
+        'תזכורת: העלאת קובץ אשראי',
+        'עברו 5 ימים מאז ההעלאה האחרונה. העלה את קובץ האשראי לעדכון.'
+      );
+    }, timeUntilReminder);
+  }
+}
+
+// Budget overspending alert
+function checkBudgetOverspending(category, spent, budget) {
+  if (spent > budget) {
+    sendNotification(
+      'חריגת תקציב',
+      `הקטגוריה ${CAT[category] || category} חרגה מהתקציב: ${fmt(spent)} מתוך ${fmt(budget)}`
+    );
+  }
+}
+
+// Subscription expiration alert
+function checkSubscriptionExpirations() {
+  if (!subscriptions || subscriptions.length === 0) return;
+  
+  const now = new Date();
+  const threeDaysFromNow = new Date();
+  threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+  
+  subscriptions.forEach(sub => {
+    if (!sub.active || !sub.exp) return;
+    
+    const expDate = new Date(sub.exp);
+    if (expDate <= threeDaysFromNow && expDate >= now) {
+      const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+      sendNotification(
+        'תזכורת: סיום מנוי',
+        `המנוי ${sub.name} מסתיים בעוד ${daysLeft} ימים`
+      );
+    }
+  });
+}
+
+// Investment update reminder
+let lastInvestmentUpdate = localStorage.getItem('kc3_last_inv_update');
+const INVESTMENT_REMINDER_MONTHS = 2;
+
+function updateInvestmentUpdateDate() {
+  const now = new Date().toISOString();
+  localStorage.setItem('kc3_last_inv_update', now);
+  lastInvestmentUpdate = now;
+  scheduleInvestmentReminder();
+}
+
+function scheduleInvestmentReminder() {
+  if (!lastInvestmentUpdate) {
+    lastInvestmentUpdate = localStorage.getItem('kc3_last_inv_update');
+  }
+  
+  if (!lastInvestmentUpdate) {
+    // First time, set to now
+    updateInvestmentUpdateDate();
+    return;
+  }
+  
+  const lastUpdate = new Date(lastInvestmentUpdate);
+  const nextReminder = new Date(lastUpdate);
+  nextReminder.setMonth(nextReminder.getMonth() + INVESTMENT_REMINDER_MONTHS);
+  
+  // Check if we need to schedule a reminder
+  const now = new Date();
+  const timeUntilReminder = nextReminder - now;
+  
+  if (timeUntilReminder > 0) {
+    // Clear any existing timeout
+    if (window.investmentReminderTimeout) {
+      clearTimeout(window.investmentReminderTimeout);
+    }
+    
+    // Schedule the reminder
+    window.investmentReminderTimeout = setTimeout(() => {
+      sendNotification(
+        'תזכורת: עדכון השקעות',
+        'עברו חודשיים מאז העדכון האחרון. עדכן את שווי ההשקעות שלך.'
+      );
+    }, timeUntilReminder);
+  }
+}
+
+// Get next credit card upload date for tips section
+function getNextCreditCardUploadDate() {
+  if (!lastCreditCardUpload) {
+    lastCreditCardUpload = localStorage.getItem('kc3_last_cc_upload');
+  }
+  
+  if (!lastCreditCardUpload) {
+    return null;
+  }
+  
+  const lastUpload = new Date(lastCreditCardUpload);
+  const nextUpload = new Date(lastUpload);
+  nextUpload.setDate(nextUpload.getDate() + CREDIT_CARD_REMINDER_DAYS);
+  
+  return nextUpload;
+}
+
+// Initialize notifications
+async function initNotifications() {
+  const granted = await requestNotificationPermission();
+  if (granted) {
+    scheduleCreditCardReminder();
+    scheduleInvestmentReminder();
+    checkSubscriptionExpirations();
+  }
+}
+
 // Initialize privacy mode on load
 function initPrivacyMode() {
   applyPrivacyMode();
@@ -1467,4 +1676,5 @@ function initPrivacyMode() {
 document.addEventListener('DOMContentLoaded', function() {
   initApp();
   initPrivacyMode();
+  initNotifications();
 });

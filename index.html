@@ -18,7 +18,7 @@
 <link rel="manifest" id="pwa-manifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="כסף חכם">
-<script src="app.js?v=33"></script>
+<script src="app.js?v=35"></script>
 </head>
 <body>
 <!-- LOCK SCREEN -->
@@ -133,7 +133,7 @@
     <div class="card"><div class="ct">הוצאות לפי קטגוריה</div><div id="d-cats"></div></div>
     <div class="card"><div class="ct">5 הוצאות הגדולות</div><div id="d-top5"></div></div>
   </div>
-  <div class="card"><div class="ct">תנועות אחרונות</div><table class="tbl"><tbody id="d-recent"></tbody></table></div>
+  <div class="card"><div class="ct">תנועות אחרונות</div><div class="tbl-wrap"><table class="tbl"><tbody id="d-recent"></tbody></table></div></div>
 </div>
 
 <div id="page-transactions" class="page">
@@ -157,13 +157,13 @@
     <select id="f-cat" onchange="renderTxns()" style="padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="all">כל קטגוריה</option><option value="food">אוכל</option><option value="groceries">מזון</option><option value="restaurants">מסעדות</option><option value="coffee">קפה</option><option value="transport">תחבורה</option><option value="gas">דלק</option><option value="parking">חניה</option><option value="public_transport">תחבורה ציבורית</option><option value="car_maintenance">תחזוקת רכב</option><option value="housing">דיור</option><option value="rent">שכירות</option><option value="home_improvement">שיפוצים</option><option value="utilities">חשבונות</option><option value="electricity">חשמל</option><option value="water">מים</option><option value="internet">אינטרנט</option><option value="phone">טלפון</option><option value="subscriptions">מנויים</option><option value="health">בריאות</option><option value="medical">רפואה</option><option value="pharmacy">פארמה</option><option value="insurance">ביטוח</option><option value="fitness">כושר</option><option value="entertainment">בידור</option><option value="travel">נסיעות</option><option value="shopping">קניות</option><option value="clothing">ביגוד</option><option value="electronics">אלקטרוניקה</option><option value="education">חינוך</option><option value="gifts">מתנות</option><option value="pets">חיות מחמד</option><option value="charity">תרומה</option><option value="taxes">מיסים</option><option value="salary">משכורת</option><option value="freelance">פרילנס</option><option value="other">אחר</option></select>
     <select id="f-mon" onchange="renderTxns()" style="padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="all">כל החודשים</option></select>
   </div>
-  <div class="card" style="padding:0;overflow:hidden"><table class="tbl"><thead><tr><th>קטגוריה</th><th>תיאור</th><th>תאריך</th><th>סכום</th><th></th></tr></thead><tbody id="txn-tbody"></tbody></table></div>
+  <div class="card" style="padding:0;overflow:hidden"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>קטגוריה</th><th>תיאור</th><th>תאריך</th><th>סכום</th><th></th></tr></thead><tbody id="txn-tbody"></tbody></table></div></div>
 </div>
 
 <div id="page-monthly" class="page">
   <div class="ph"><div class="pt">גרף חודשי</div><select id="mon-range" onchange="buildMonthly()" style="padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif"><option value="6">6 חודשים</option><option value="12">12 חודשים</option><option value="3">3 חודשים</option></select></div>
-  <div class="card"><div class="ct">הכנסות מול הוצאות</div><div style="display:flex;gap:16px;font-size:12px;color:var(--t2);margin-bottom:10px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green);margin-left:5px"></span>הכנסות</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);margin-left:5px"></span>הוצאות</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--blue);margin-left:5px"></span>מאזן</span></div><div style="position:relative;height:240px"><canvas id="mon-chart"></canvas></div></div>
-  <div class="g2"><div class="card"><div class="ct">עוגת הוצאות</div><div class="dw"><div style="position:relative;height:145px;width:145px;flex-shrink:0"><canvas id="donut-chart"></canvas></div><div class="dl" id="donut-leg"></div></div></div><div class="card"><div class="ct">השוואה לחודש שעבר</div><div id="cmp-sec"></div></div></div>
+  <div class="card"><div class="ct">הכנסות מול הוצאות</div><div style="display:flex;gap:16px;font-size:12px;color:var(--t2);margin-bottom:10px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green);margin-left:5px"></span>הכנסות</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);margin-left:5px"></span>הוצאות</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--blue);margin-left:5px"></span>מאזן</span></div><div class="chart-wrap" style="position:relative;height:240px"><canvas id="mon-chart"></canvas></div></div>
+  <div class="g2"><div class="card"><div class="ct">עוגת הוצאות</div><div class="dw"><div class="chart-wrap" style="position:relative;height:145px;width:145px;flex-shrink:0"><canvas id="donut-chart"></canvas></div><div class="dl" id="donut-leg"></div></div></div><div class="card"><div class="ct">השוואה לחודש שעבר</div><div id="cmp-sec"></div></div></div>
 </div>
 
 <div id="page-budget" class="page">
@@ -177,7 +177,7 @@
   <div class="ph"><div class="pt">כיס חיסכון</div></div>
   <div class="card sc-acc"><div class="sl">יתרת כיס חיסכון</div><div style="font-size:34px;font-weight:900;color:var(--green);margin:8px 0;text-shadow:var(--glow)" id="sav-big">₪0</div><div style="font-size:12px;color:var(--t2)">מעקב תיעודי — הכסף נשאר בחשבון שלך</div><div class="pgw"><div class="pgf" id="sav-pg" style="width:0%"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3)"><span>₪0</span><span id="sav-gl">יעד: ₪10,000</span></div><div style="margin-top:1rem;padding:10px 12px;background:var(--bluel);border-radius:var(--rs);font-size:12px;color:var(--blue);border:1px solid rgba(77,159,255,.15)" id="emergency"></div></div>
   <div class="g2"><div class="card"><div class="ct">הגדרת יעד</div><div class="frow" style="margin:0"><div class="fi"><label>יעד (₪)</label><input type="number" id="sav-gi" placeholder="10000" inputmode="decimal"></div><button class="btn btn-g" onclick="setSavGoal()" style="height:42px;align-self:flex-end">שמור</button></div></div><div class="card"><div class="ct">חיזוי הגעה ליעד</div><div id="sav-fc"></div></div></div>
-  <div class="card"><div class="ct">היסטוריית חיסכון</div><table class="tbl"><tbody id="sav-tbody"></tbody></table></div>
+  <div class="card"><div class="ct">היסטוריית חיסכון</div><div class="tbl-wrap"><table class="tbl"><tbody id="sav-tbody"></tbody></table></div></div>
 </div>
 
 <div id="page-recurring" class="page">
@@ -192,8 +192,8 @@
   <div class="g3" id="stk-stats"></div>
   <div id="stk-list"></div>
   <div class="g2">
-    <div class="card"><div class="ct">התפלגות תיק</div><div class="dw"><div style="position:relative;height:145px;width:145px;flex-shrink:0"><canvas id="stk-donut"></canvas></div><div class="dl" id="stk-dleg"></div></div></div>
-    <div class="card"><div class="ct">שווי תיק לאורך זמן</div><div style="position:relative;height:155px"><canvas id="stk-perf"></canvas></div></div>
+    <div class="card"><div class="ct">התפלגות תיק</div><div class="dw"><div class="chart-wrap" style="position:relative;height:145px;width:145px;flex-shrink:0"><canvas id="stk-donut"></canvas></div><div class="dl" id="stk-dleg"></div></div></div>
+    <div class="card"><div class="ct">שווי תיק לאורך זמן</div><div class="chart-wrap" style="position:relative;height:155px"><canvas id="stk-perf"></canvas></div></div>
   </div>
 </div>
 
@@ -201,14 +201,14 @@
   <div class="ph"><div class="pt">שווי נטו כולל</div></div>
   <div class="g3" id="nw-stats"></div>
   <div class="card"><div class="ct">פירוט נכסים</div><div id="nw-breakdown"></div></div>
-  <div class="g2"><div class="card"><div class="ct">התפלגות נכסים</div><div class="dw"><div style="position:relative;height:150px;width:150px;flex-shrink:0"><canvas id="nw-donut"></canvas></div><div class="dl" id="nw-dleg"></div></div></div><div class="card"><div class="ct">סיכום מפורט</div><div id="nw-detail"></div></div></div>
+  <div class="g2"><div class="card"><div class="ct">התפלגות נכסים</div><div class="dw"><div class="chart-wrap" style="position:relative;height:150px;width:150px;flex-shrink:0"><canvas id="nw-donut"></canvas></div><div class="dl" id="nw-dleg"></div></div></div><div class="card"><div class="ct">סיכום מפורט</div><div id="nw-detail"></div></div></div>
 </div>
 
 <div id="page-analysis" class="page">
   <div class="ph"><div class="pt">ניתוח מתקדם</div></div>
   <div class="g2" id="ins-grid" style="margin-bottom:1.2rem"></div>
   <div class="g2">
-    <div class="card"><div class="ct">מגמת הוצאות</div><div class="fi" style="margin-bottom:.75rem"><label>קטגוריה</label><select id="tr-cat" onchange="buildTrend()"><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="entertainment">בידור</option><option value="health">בריאות</option></select></div><div style="position:relative;height:170px"><canvas id="tr-chart"></canvas></div></div>
+    <div class="card"><div class="ct">מגמת הוצאות</div><div class="fi" style="margin-bottom:.75rem"><label>קטגוריה</label><select id="tr-cat" onchange="buildTrend()"><option value="food">אוכל</option><option value="transport">תחבורה</option><option value="housing">דיור</option><option value="entertainment">בידור</option><option value="health">בריאות</option></select></div><div class="chart-wrap" style="position:relative;height:170px"><canvas id="tr-chart"></canvas></div></div>
     <div class="card"><div class="ct">השוואת חודשים</div><div style="display:flex;gap:8px;margin-bottom:.75rem"><div class="fi"><label>חודש א</label><select id="cmp-a" onchange="renderCmp()"></select></div><div class="fi"><label>חודש ב</label><select id="cmp-b" onchange="renderCmp()"></select></div></div><div id="cmp-detail"></div></div>
   </div>
   <div class="card"><div class="ct">5 הוצאות הגבוהות — כל הזמנים</div><div id="all-top5"></div></div>
