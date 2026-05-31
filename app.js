@@ -125,9 +125,15 @@ auth.onAuthStateChanged((user) => {
       ub.style.display = 'flex';
       ub.innerHTML = (user.photoURL?'<img src="'+user.photoURL+'">':'') + '<span>' + (user.displayName||user.email).split(' ')[0] + '</span><span style="opacity:.4;margin-right:4px">| יציאה</span>';
     }
+    // Hide login screen and show app
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
     showApp();
   } else {
-    showLogin();
+    // Show login screen and hide app
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+    userKey = null;
   }
 });
 
