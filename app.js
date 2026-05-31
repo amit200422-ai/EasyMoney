@@ -530,7 +530,11 @@ function renderTips(){const mt=curMt(),inc=mt.filter(t=>t.type==='income').reduc
   if(exp>inc)tips.push({type:'warn',icon:'⚠️',t:'גירעון חודשי',b:'הוצאות ('+fmt(exp)+') עולות על הכנסות ('+fmt(inc)+'). גירעון של '+fmt(exp-inc)+'.'});
   if(inc>0){const p=Math.round(sav/inc*100);if(p<20)tips.push({type:'info',icon:'💡',t:'הגדל חיסכון',b:'אתה חוסך '+p+'% מהכנסתך. מומלץ לשאוף ל-20%. נדרש עוד '+fmt(inc*0.2-sav)+' החודש.'});else tips.push({type:'ok',icon:'✅',t:'יחס חיסכון מצוין',b:'חוסך '+p+'% — שמור על הקצב!'});}
   if(inc>0&&food>inc*0.15)tips.push({type:'info',icon:'🍽️',t:'הוצאות אוכל גבוהות',b:'השקעת '+fmt(food)+' על אוכל ('+Math.round(food/inc*100)+'%). תכנון ארוחות עשוי לחסוך 20-30%.'});
-  if(ent>600)tips.push({type:'info',icon:'📺',t:'בדוק מנויים',b:'בידור עלה '+fmt(ent)+' החודש. שקול לבטל מנויים שאינם בשימוש.'});
+  // Only suggest checking subscriptions if there are actual subscriptions in entertainment category
+  const entSubs = subscriptions && subscriptions.filter(s => s.active && (s.cat === 'entertainment' || s.cat === 'subscriptions'));
+  const entSubCost = entSubs ? entSubs.reduce((sum, s) => sum + (s.price || 0), 0) : 0;
+  if(ent>600 && entSubCost > 0)tips.push({type:'info',icon:'📺',t:'בדוק מנויים',b:'בידור עלה '+fmt(ent)+' החודש (כולל '+fmt(entSubCost)+' במנויים). שקול לבטל מנויים שאינם בשימוש.'});
+  else if(ent>600)tips.push({type:'info',icon:'📺',t:'הוצאות בידור גבוהות',b:'בידור עלה '+fmt(ent)+' החודש. בדוק אם יש מנויים שאינם בשימוש.'});
   const em=exp>0?Math.round(allSav/exp*10)/10:0;
   if(em<3)tips.push({type:'info',icon:'🛡️',t:'קרן חירום נמוכה',b:'יש לך '+em+' חודשי הוצאות. מומלץ להגיע ל-3-6 חודשים.'});
   else tips.push({type:'ok',icon:'🛡️',t:'קרן חירום טובה',b:'יש לך '+em+' חודשי הוצאות שמורים — מצוין!'});
