@@ -110,6 +110,16 @@ window.doSignOut = async function() {
   location.reload();
 };
 
+// Change Google account
+window.changeGoogleAccount = async function() {
+  if (confirm('האם אתה בטוח שברצונך לשנות את חשבון ה-Google?')) {
+    await auth.signOut();
+    // Show login screen
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+  }
+};
+
 // Guest mode
 window.doGuest = function() {
   userKey = 'guest';
@@ -1044,20 +1054,28 @@ function toggleChat() {
 
 function toggleChatMobile() {
   const chat = document.getElementById('chat-bot');
-  const icon = document.getElementById('chat-icon');
-  chat.classList.toggle('mobile-open');
-  icon.style.display = chat.classList.contains('mobile-open') ? 'none' : 'flex';
-  if (chat.classList.contains('mobile-open')) {
-    chat.classList.remove('collapsed');
-    const toggle = chat.querySelector('.chat-toggle');
-    toggle.textContent = '−';
-    const body = document.getElementById('chat-body');
-    if (body.children.length === 0) {
-      setTimeout(() => {
-        showWelcomeMessage();
-        showInsightsOnOpen();
-      }, 300);
-    }
+  if (!chat) return;
+  
+  // Show chat bot on mobile
+  chat.style.display = 'block';
+  chat.style.position = 'fixed';
+  chat.style.bottom = '80px';
+  chat.style.left = '10px';
+  chat.style.right = '10px';
+  chat.style.width = 'auto';
+  chat.style.maxWidth = 'none';
+  chat.style.zIndex = '1002';
+  
+  chat.classList.remove('collapsed');
+  const toggle = chat.querySelector('.chat-toggle');
+  if (toggle) toggle.textContent = '−';
+  
+  const body = document.getElementById('chat-body');
+  if (body && body.children.length === 0) {
+    setTimeout(() => {
+      showWelcomeMessage();
+      showInsightsOnOpen();
+    }, 300);
   }
 }
 
