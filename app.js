@@ -1027,6 +1027,25 @@ function toggleChat() {
   }
 }
 
+function toggleChatMobile() {
+  const chat = document.getElementById('chat-bot');
+  const icon = document.getElementById('chat-icon');
+  chat.classList.toggle('mobile-open');
+  icon.style.display = chat.classList.contains('mobile-open') ? 'none' : 'flex';
+  if (chat.classList.contains('mobile-open')) {
+    chat.classList.remove('collapsed');
+    const toggle = chat.querySelector('.chat-toggle');
+    toggle.textContent = '−';
+    const body = document.getElementById('chat-body');
+    if (body.children.length === 0) {
+      setTimeout(() => {
+        showWelcomeMessage();
+        showInsightsOnOpen();
+      }, 300);
+    }
+  }
+}
+
 function showWelcomeMessage() {
   const body = document.getElementById('chat-body');
   const welcomeMsg = document.createElement('div');
@@ -1469,19 +1488,14 @@ function applyPrivacyMode() {
 // ─── NOTIFICATIONS SYSTEM ─────────────────────────────────────────────────────
 let notificationPermission = 'default';
 
+// Import Capacitor Local Notifications
+const { LocalNotifications } = Capacitor.Plugins;
+
 // Request notification permissions
 async function requestNotificationPermission() {
-  if (!('Notification' in window)) {
-    console.log('This browser does not support notifications');
-    return false;
-  }
-  
-  if (notificationPermission === 'granted') {
-    return true;
-  }
-  
   try {
-    notificationPermission = await Notification.requestPermission();
+    const result = await LocalNotifications.requestPermissions();
+    notificationPermission = result.display === 'granted' ? 'granted' : 'denied';
     return notificationPermission === 'granted';
   } catch (error) {
     console.error('Error requesting notification permission:', error);
@@ -1489,26 +1503,27 @@ async function requestNotificationPermission() {
   }
 }
 
-// Send a notification
-function sendNotification(title, body, options = {}) {
+// Send a notification using Capacitor
+async function sendNotification(title, body, options = {}) {
   if (notificationPermission !== 'granted') {
     return false;
   }
   
   try {
-    const notification = new Notification(title, {
-      body: body,
-      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>',
-      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💰</text></svg>',
-      vibrate: [200, 100, 200],
-      ...options
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: Date.now(),
+          title: title,
+          body: body,
+          schedule: { at: new Date(Date.now() + 100) }, // Show immediately
+          sound: 'default',
+          smallIcon: 'ic_stat_icon_config_sample',
+          largeIcon: 'ic_stat_icon_config_sample',
+          ...options
+        }
+      ]
     });
-    
-    notification.onclick = function() {
-      window.focus();
-      notification.close();
-    };
-    
     return true;
   } catch (error) {
     console.error('Error sending notification:', error);
