@@ -1594,6 +1594,10 @@ function applyPrivacyMode() {
     document.querySelectorAll('#next-stmt-amount').forEach(el => {
       el.classList.add('privacy-blur');
     });
+    // Blur top 5 expenses
+    document.querySelectorAll('#d-top5').forEach(el => {
+      el.classList.add('privacy-blur');
+    });
   } else {
     btn.classList.remove('active');
     lbl.textContent = 'Privacy Mode';
