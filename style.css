@@ -304,7 +304,7 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .chat-bot.collapsed .chat-input{display:none}
 .chat-bot.collapsed .chat-toggle{transform:rotate(180deg)}
 /* Mobile Chat Icon */
-.chat-icon{display:none;position:fixed;bottom:85px;right:20px;width:56px;height:56px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:50%;box-shadow:0 4px 20px rgba(0,229,160,0.4);z-index:1001;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s}
+.chat-icon{display:none;position:fixed;top:20px;right:20px;width:50px;height:50px;background:linear-gradient(135deg,var(--green),var(--gd));border-radius:50%;box-shadow:0 4px 20px rgba(0,229,160,0.4);z-index:1001;align-items:center;justify-content:center;cursor:pointer;transition:transform .2s}
 .chat-icon:active{transform:scale(0.9)}
 .chat-icon svg{width:28px;height:28px;color:#0B1120}
 /* PRIVACY MODE */

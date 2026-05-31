@@ -66,9 +66,14 @@ function showApp() {
 
 // Firebase save function
 window.firebaseSave = async function(data) {
-  if (!userKey) return;
+  if (!userKey) {
+    console.warn('Firebase save skipped: no userKey');
+    return;
+  }
   try {
+    console.log('Firebase save to:', userKey, 'data:', data);
     await db.ref(userKey).set(data);
+    console.log('Firebase save successful');
   } catch(e) {
     console.error('Firebase save error:', e);
   }
