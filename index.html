@@ -18,7 +18,7 @@
 <link rel="manifest" id="pwa-manifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="כסף חכם">
-<script src="app.js?v=28"></script>
+<script src="app.js?v=29"></script>
 </head>
 <body>
 <!-- LOCK SCREEN -->
@@ -93,6 +93,8 @@
   <div class="ph">
     <div><div class="pt">שלום 👋</div><div class="pt-sub" id="dash-date"></div></div>
     <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn btn-sm" onclick="toggleBillingCycleView()" id="billing-toggle" style="font-size:11px;color:var(--blue);border-color:rgba(77,159,255,0.3)">📅 חודש קלנדרי</button>
+      <button class="btn btn-sm" onclick="openBillingSettings()" style="font-size:11px;color:var(--blue);border-color:rgba(77,159,255,0.3)">⚙️ מחזור חיוב</button>
       <button class="btn btn-sm" onclick="openCheckingModal()" style="font-size:11px;color:var(--blue);border-color:rgba(77,159,255,0.3)">🏦 הגדר עו"ש</button>
       <select id="dash-month" onchange="onDashMonthChange()" style="padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif">
         <option value="current">📅 החודש הנוכחי</option>
@@ -112,6 +114,18 @@
       <div class="ck-fi"><div class="ck-dot" style="background:#00E5A0"></div><span style="color:rgba(255,255,255,0.5)">הכנסות:</span><span style="color:#00E5A0;font-weight:700" id="ck-inc">₪0</span></div>
       <div class="ck-fi"><div class="ck-dot" style="background:#FF5370"></div><span style="color:rgba(255,255,255,0.5)">הוצאות:</span><span style="color:#FF5370;font-weight:700" id="ck-exp">₪0</span></div>
       <div class="ck-fi"><div class="ck-dot" style="background:#FFB830"></div><span style="color:rgba(255,255,255,0.5)">חיסכון:</span><span style="color:#FFB830;font-weight:700" id="ck-sav">₪0</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem;background:linear-gradient(135deg,rgba(77,159,255,0.15),rgba(0,229,160,0.15));border:1px solid rgba(77,159,255,0.3)">
+    <div class="ct" style="color:var(--blue)">💳 החיוב הקרוב באשראי</div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:12px;color:var(--t3);margin-bottom:4px" id="next-stmt-date"></div>
+        <div style="font-size:24px;font-weight:700;color:var(--t1)" id="next-stmt-amount">₪0</div>
+      </div>
+      <div style="font-size:11px;color:var(--t3);text-align:right">
+        <div>מחזור: ה-<span id="billing-day-display"></span> בחודש</div>
+      </div>
     </div>
   </div>
   <div class="bstrip" id="bs"></div>
@@ -388,5 +402,12 @@
     <button class="chat-send" onclick="sendChat()">→</button>
   </div>
 </div>
+
+<div class="modal-bg" id="billing-modal"><div class="modal">
+  <div class="modal-t">הגדרת מחזור חיוב אשראי</div>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:1rem;line-height:1.6">בחר את התאריך בחודש שבו יורד החיוב של הכרטיס אשראי שלך</div>
+  <div class="frow"><div class="fi"><label>יום בחודש</label><select id="billing-day-select" style="padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif;width:100%"></select></div></div>
+  <div class="modal-act"><button class="btn" onclick="closeModal('billing-modal')">ביטול</button><button class="btn btn-g" onclick="saveBillingSettings()">שמור</button></div>
+</div></div>
 </body>
 </html>

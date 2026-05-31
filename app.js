@@ -139,6 +139,8 @@ const USD=3.7;
 let txns=[],budgets={},savGoal=10000,recurring=[],investments=[];
 let editId=null,updId=null;
 let mCh=null,dCh=null,tCh=null,sDon=null,sPerf=null,nwDon=null;
+let billingCycleDay=10; // Default billing cycle day (10th of month)
+let useBillingCycle=false; // Toggle between calendar and billing cycle view
 
 const DTXNS=[
   {id:1,type:'income',desc:'משכורת אפריל',amount:12000,cat:'salary',date:'2026-04-01'},
@@ -213,7 +215,7 @@ function initLock(){ /* Google Auth מטפל בזיהוי */ }
 function checkLock(){ }
 
 function save(){
-  try{localStorage.setItem('kc3_t',JSON.stringify(txns));localStorage.setItem('kc3_b',JSON.stringify(budgets));localStorage.setItem('kc3_g',String(savGoal));localStorage.setItem('kc3_r',JSON.stringify(recurring));localStorage.setItem('kc3_i',JSON.stringify(investments));}catch(e){}
+  try{localStorage.setItem('kc3_t',JSON.stringify(txns));localStorage.setItem('kc3_b',JSON.stringify(budgets));localStorage.setItem('kc3_g',String(savGoal));localStorage.setItem('kc3_r',JSON.stringify(recurring));localStorage.setItem('kc3_i',JSON.stringify(investments));localStorage.setItem('kc3_bcd',String(billingCycleDay));localStorage.setItem('kc3_ubc',String(useBillingCycle));}catch(e){}
   // Save to Firebase
   if(window.firebaseSave){
     window.firebaseSave({txns,budgets,savGoal,recurring,investments,checkingData,subscriptions});
@@ -226,6 +228,8 @@ function load(){
     const g=localStorage.getItem('kc3_g');savGoal=g?parseFloat(g):10000;
     const r=localStorage.getItem('kc3_r');recurring=r?JSON.parse(r):JSON.parse(JSON.stringify(DREC));
     const i=localStorage.getItem('kc3_i');investments=i?JSON.parse(i):JSON.parse(JSON.stringify(DINV));
+    const bcd=localStorage.getItem('kc3_bcd');billingCycleDay=bcd?parseInt(bcd):10;
+    const ubc=localStorage.getItem('kc3_ubc');useBillingCycle=ubc?ubc==='true':false;
     const ck=localStorage.getItem('kc3_ck');if(ck&&typeof checkingData!=='undefined')checkingData=JSON.parse(ck);
   }catch(e){txns=JSON.parse(JSON.stringify(DTXNS));recurring=JSON.parse(JSON.stringify(DREC));investments=JSON.parse(JSON.stringify(DINV));budgets={};}
 }
@@ -234,6 +238,106 @@ function fmt(n){return '₪'+Math.round(n).toLocaleString('he-IL');}
 function mk(d){return d.slice(0,7);}
 function nowMk(){return new Date().toISOString().slice(0,7);}
 function mTxns(m){return txns.filter(t=>mk(t.date)===m);}
+
+// Billing cycle helper functions
+function getBillingCycleRange(date = new Date()) {
+  const day = date.getDate();
+  const month = date.getMonth();
+  const year = date.getFullYear();
+  
+  let startDate, endDate;
+  
+  if (day >= billingCycleDay) {
+    // Current billing cycle: billingCycleDay of current month to billingCycleDay-1 of next month
+    startDate = new Date(year, month, billingCycleDay);
+    endDate = new Date(year, month + 1, billingCycleDay - 1);
+  } else {
+    // Current billing cycle: billingCycleDay of previous month to billingCycleDay-1 of current month
+    startDate = new Date(year, month - 1, billingCycleDay);
+    endDate = new Date(year, month, billingCycleDay - 1);
+  }
+  
+  return { startDate, endDate };
+}
+
+function getBillingCycleTransactions(date = new Date()) {
+  const { startDate, endDate } = getBillingCycleRange(date);
+  return txns.filter(t => {
+    const txnDate = new Date(t.date);
+    return txnDate >= startDate && txnDate <= endDate;
+  });
+}
+
+function getNextStatementAmount() {
+  const { startDate, endDate } = getBillingCycleRange();
+  const cycleTxns = getBillingCycleTransactions();
+  const expenses = cycleTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  return expenses;
+}
+
+function getNextStatementDate() {
+  const today = new Date();
+  const day = today.getDate();
+  const month = today.getMonth();
+  const year = today.getFullYear();
+  
+  if (day >= billingCycleDay) {
+    // Next statement is on billingCycleDay of next month
+    return new Date(year, month + 1, billingCycleDay);
+  } else {
+    // Next statement is on billingCycleDay of current month
+    return new Date(year, month, billingCycleDay);
+  }
+}
+
+function toggleBillingCycleView() {
+  useBillingCycle = !useBillingCycle;
+  save();
+  renderAll();
+  toast(useBillingCycle ? 'תצוגת מחזור חיוב' : 'תצוגת חודש קלנדרי', 'green');
+}
+
+function setBillingCycleDay(day) {
+  billingCycleDay = parseInt(day);
+  save();
+  toast('תאריך מחזור חיוב עודכן ל-' + day + ' בחודש', 'green');
+}
+
+function openBillingSettings() {
+  const select = document.getElementById('billing-day-select');
+  select.innerHTML = '';
+  for (let i = 1; i <= 31; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = i + ' בחודש';
+    if (i === billingCycleDay) option.selected = true;
+    select.appendChild(option);
+  }
+  document.getElementById('billing-modal').classList.add('show');
+}
+
+function saveBillingSettings() {
+  const day = document.getElementById('billing-day-select').value;
+  setBillingCycleDay(day);
+  closeModal('billing-modal');
+  updateBillingWidget();
+}
+
+function updateBillingWidget() {
+  const nextStmtDate = getNextStatementDate();
+  const nextStmtAmount = getNextStatementAmount();
+  
+  const dateStr = nextStmtDate.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' });
+  document.getElementById('next-stmt-date').textContent = 'החיוב הקרוב: ' + dateStr;
+  document.getElementById('next-stmt-amount').textContent = fmt(nextStmtAmount);
+  document.getElementById('billing-day-display').textContent = billingCycleDay;
+  
+  // Update toggle button text
+  const toggleBtn = document.getElementById('billing-toggle');
+  if (toggleBtn) {
+    toggleBtn.textContent = useBillingCycle ? '📅 מחזור חיוב' : '📅 חודש קלנדרי';
+  }
+}
 function getDashMonth(){
   const sel=document.getElementById('dash-month');
   if(!sel) return nowMk();
@@ -242,6 +346,9 @@ function getDashMonth(){
   return v; // 'all' or specific month like '2026-03'
 }
 function curMt(){
+  if (useBillingCycle) {
+    return getBillingCycleTransactions();
+  }
   const m=getDashMonth();
   if(m==='all') return txns;
   return mTxns(m);
@@ -266,7 +373,7 @@ function nav(page,btn){
   setTimeout(applyPrivacyMode, 100);
 }
 
-function renderAll(){populateDashMonth();renderCheckingBalance();renderBalance();renderMainStats();renderDashCats();renderDashTop5();renderRecent();renderTxns();renderSavings();renderRecurring();renderBudget();renderTips();populateMonthFilter();save();applyPrivacyMode();}
+function renderAll(){populateDashMonth();renderCheckingBalance();renderBalance();renderMainStats();renderDashCats();renderDashTop5();renderRecent();renderTxns();renderSavings();renderRecurring();renderBudget();renderTips();populateMonthFilter();updateBillingWidget();save();applyPrivacyMode();}
 
 function renderBalance(){
   const mt=curMt();
