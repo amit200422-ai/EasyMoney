@@ -17,6 +17,10 @@ try {
   db = firebase.database();
   auth = firebase.auth();
   provider = new firebase.auth.GoogleAuthProvider();
+  // Set auth persistence to LOCAL so user stays logged in
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e => {
+    console.warn('Firebase persistence error:', e);
+  });
   userKey = null;
 } catch(e) {
   console.warn('Firebase initialization error:', e);
