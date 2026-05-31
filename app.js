@@ -138,6 +138,11 @@ auth.onAuthStateChanged((user) => {
     }
     // Update page title with email
     document.title = 'כסף חכם - ' + userEmail;
+    // Update change account button text with email
+    const changeAccountText = document.getElementById('change-account-text');
+    if (changeAccountText) {
+      changeAccountText.textContent = userEmail.split('@')[0];
+    }
     // Hide login screen and show app
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
@@ -148,6 +153,10 @@ auth.onAuthStateChanged((user) => {
     document.getElementById('app-container').style.display = 'none';
     userKey = null;
     document.title = 'כסף חכם';
+    const changeAccountText = document.getElementById('change-account-text');
+    if (changeAccountText) {
+      changeAccountText.textContent = 'שנה חשבון';
+    }
   }
 });
 
