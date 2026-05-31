@@ -130,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // PWA
 try{const mf={name:'כסף חכם',short_name:'כסף חכם',start_url:'/',display:'standalone',background_color:'#0B1120',theme_color:'#00E5A0'};const mb=new Blob([JSON.stringify(mf)],{type:'application/json'});const ml=document.getElementById('pwa-manifest');if(ml)ml.href=URL.createObjectURL(mb);}catch(e){}
 
-const CAT={food:'אוכל',transport:'תחבורה',housing:'דיור',utilities:'חשבונות',health:'בריאות',entertainment:'בידור',salary:'משכורת',freelance:'פרילנס',savings:'חיסכון',other:'אחר'};
-const CPILL={food:'p-food',transport:'p-transport',housing:'p-housing',utilities:'p-utilities',health:'p-health',entertainment:'p-entertainment',salary:'p-salary',freelance:'p-freelance',savings:'p-savings',other:'p-other'};
+const CAT={food:'אוכל',transport:'תחבורה',housing:'דיור',utilities:'חשבונות',health:'בריאות',entertainment:'בידור',salary:'משכורת',freelance:'פרילנס',savings:'חיסכון',other:'אחר',groceries:'מזון',restaurants:'מסעדות',coffee:'קפה',gas:'דלק',parking:'חניה',public_transport:'תחבורה ציבורית',rent:'שכירות',electricity:'חשמל',water:'מים',internet:'אינטרנט',phone:'טלפון',insurance:'ביטוח',medical:'רפואה',pharmacy:'פארמה',fitness:'כושר',shopping:'קניות',clothing:'ביגוד',electronics:'אלקטרוניקה',education:'חינוך',gifts:'מתנות',travel:'נסיעות',subscriptions:'מנויים',home_improvement:'שיפוצים',car_maintenance:'תחזוקת רכב',pets:'חיות מחמד',charity:'תרומה',taxes:'מיסים'};
+const CPILL={food:'p-food',transport:'p-transport',housing:'p-housing',utilities:'p-utilities',health:'p-health',entertainment:'p-entertainment',salary:'p-salary',freelance:'p-freelance',savings:'p-savings',other:'p-other',groceries:'p-food',restaurants:'p-food',coffee:'p-food',gas:'p-transport',parking:'p-transport',public_transport:'p-transport',rent:'p-housing',electricity:'p-utilities',water:'p-utilities',internet:'p-utilities',phone:'p-utilities',insurance:'p-health',medical:'p-health',pharmacy:'p-health',fitness:'p-health',shopping:'p-other',clothing:'p-other',electronics:'p-other',education:'p-other',gifts:'p-other',travel:'p-entertainment',subscriptions:'p-utilities',home_improvement:'p-housing',car_maintenance:'p-transport',pets:'p-other',charity:'p-other',taxes:'p-other'};
 const ITYPE={pension:'פנסיה/גמל',stock:'מניות/ETF',realestate:'נדל"ן',savings_plan:'חיסכון',money_market:'קרן כספית',crypto:'קריפטו',other:'אחר'};
 const ICOLOR={pension:'#00E5A0',stock:'#4D9FFF',realestate:'#FFB830',savings_plan:'#B97FFF',money_market:'#FF77AA',crypto:'#FF5370',other:'#8BA4BE'};
 const COLORS=['#00E5A0','#4D9FFF','#FFB830','#B97FFF','#FF5370','#FF77AA','#00B37D','#1D6FAA'];
@@ -140,7 +140,6 @@ let txns=[],budgets={},savGoal=10000,recurring=[],investments=[];
 let editId=null,updId=null;
 let mCh=null,dCh=null,tCh=null,sDon=null,sPerf=null,nwDon=null;
 let billingCycleDay=10; // Default billing cycle day (10th of month)
-let useBillingCycle=false; // Toggle between calendar and billing cycle view
 
 const DTXNS=[
   {id:1,type:'income',desc:'משכורת אפריל',amount:12000,cat:'salary',date:'2026-04-01'},
@@ -215,7 +214,7 @@ function initLock(){ /* Google Auth מטפל בזיהוי */ }
 function checkLock(){ }
 
 function save(){
-  try{localStorage.setItem('kc3_t',JSON.stringify(txns));localStorage.setItem('kc3_b',JSON.stringify(budgets));localStorage.setItem('kc3_g',String(savGoal));localStorage.setItem('kc3_r',JSON.stringify(recurring));localStorage.setItem('kc3_i',JSON.stringify(investments));localStorage.setItem('kc3_bcd',String(billingCycleDay));localStorage.setItem('kc3_ubc',String(useBillingCycle));}catch(e){}
+  try{localStorage.setItem('kc3_t',JSON.stringify(txns));localStorage.setItem('kc3_b',JSON.stringify(budgets));localStorage.setItem('kc3_g',String(savGoal));localStorage.setItem('kc3_r',JSON.stringify(recurring));localStorage.setItem('kc3_i',JSON.stringify(investments));localStorage.setItem('kc3_bcd',String(billingCycleDay));}catch(e){}
   // Save to Firebase
   if(window.firebaseSave){
     window.firebaseSave({txns,budgets,savGoal,recurring,investments,checkingData,subscriptions});
@@ -229,7 +228,6 @@ function load(){
     const r=localStorage.getItem('kc3_r');recurring=r?JSON.parse(r):JSON.parse(JSON.stringify(DREC));
     const i=localStorage.getItem('kc3_i');investments=i?JSON.parse(i):JSON.parse(JSON.stringify(DINV));
     const bcd=localStorage.getItem('kc3_bcd');billingCycleDay=bcd?parseInt(bcd):10;
-    const ubc=localStorage.getItem('kc3_ubc');useBillingCycle=ubc?ubc==='true':false;
     const ck=localStorage.getItem('kc3_ck');if(ck&&typeof checkingData!=='undefined')checkingData=JSON.parse(ck);
   }catch(e){txns=JSON.parse(JSON.stringify(DTXNS));recurring=JSON.parse(JSON.stringify(DREC));investments=JSON.parse(JSON.stringify(DINV));budgets={};}
 }
@@ -290,13 +288,6 @@ function getNextStatementDate() {
   }
 }
 
-function toggleBillingCycleView() {
-  useBillingCycle = !useBillingCycle;
-  save();
-  renderAll();
-  toast(useBillingCycle ? 'תצוגת מחזור חיוב' : 'תצוגת חודש קלנדרי', 'green');
-}
-
 function setBillingCycleDay(day) {
   billingCycleDay = parseInt(day);
   save();
@@ -331,12 +322,6 @@ function updateBillingWidget() {
   document.getElementById('next-stmt-date').textContent = 'החיוב הקרוב: ' + dateStr;
   document.getElementById('next-stmt-amount').textContent = fmt(nextStmtAmount);
   document.getElementById('billing-day-display').textContent = billingCycleDay;
-  
-  // Update toggle button text
-  const toggleBtn = document.getElementById('billing-toggle');
-  if (toggleBtn) {
-    toggleBtn.textContent = useBillingCycle ? '📅 מחזור חיוב' : '📅 חודש קלנדרי';
-  }
 }
 function getDashMonth(){
   const sel=document.getElementById('dash-month');
@@ -346,9 +331,6 @@ function getDashMonth(){
   return v; // 'all' or specific month like '2026-03'
 }
 function curMt(){
-  if (useBillingCycle) {
-    return getBillingCycleTransactions();
-  }
   const m=getDashMonth();
   if(m==='all') return txns;
   return mTxns(m);
@@ -1456,6 +1438,10 @@ function applyPrivacyMode() {
     });
     // Blur savings amounts
     document.querySelectorAll('#sav-big, #sav-gl, #sav-fc strong, #emergency').forEach(el => {
+      el.classList.add('privacy-blur');
+    });
+    // Blur credit card next statement amount
+    document.querySelectorAll('#next-stmt-amount').forEach(el => {
       el.classList.add('privacy-blur');
     });
   } else {
