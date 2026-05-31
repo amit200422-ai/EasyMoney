@@ -1493,12 +1493,18 @@ function applyPrivacyMode() {
 // ─── NOTIFICATIONS SYSTEM ─────────────────────────────────────────────────────
 let notificationPermission = 'default';
 
-// Import Capacitor Local Notifications
-const { LocalNotifications } = Capacitor.Plugins;
+// Import Capacitor Local Notifications (only if Capacitor is available)
+const { LocalNotifications } = (typeof Capacitor !== 'undefined' && Capacitor.Plugins) ? Capacitor.Plugins : { LocalNotifications: null };
 
 // Request notification permissions
 async function requestNotificationPermission() {
   try {
+    if (!LocalNotifications) {
+      // Fallback to Web Notifications API
+      const result = await Notification.requestPermission();
+      notificationPermission = result === 'granted' ? 'granted' : 'denied';
+      return notificationPermission === 'granted';
+    }
     const result = await LocalNotifications.requestPermissions();
     notificationPermission = result.display === 'granted' ? 'granted' : 'denied';
     return notificationPermission === 'granted';
