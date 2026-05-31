@@ -18,7 +18,7 @@
 <link rel="manifest" id="pwa-manifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="כסף חכם">
-<script src="app.js?v=46"></script>
+<script src="app.js?v=47"></script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -429,21 +429,6 @@
 </div></div>
 
 <div class="toast" id="toast"></div>
-
-<!-- CHAT BOT (Desktop Only) -->
-<div class="chat-bot-wrapper-desktop">
-  <div class="chat-bot collapsed" id="chat-bot">
-    <div class="chat-header" onclick="toggleChat()">
-      <span>🤖 ייעוץ מהיר</span>
-      <span class="chat-toggle">+</span>
-    </div>
-    <div class="chat-body" id="chat-body"></div>
-    <div class="chat-input">
-      <input type="text" id="chat-input" placeholder="שאל שאלה..." onkeydown="if(event.key==='Enter')sendChat()">
-      <button class="chat-send" onclick="sendChat()">→</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal-bg" id="billing-modal"><div class="modal">
   <div class="modal-t">הגדרת מחזור חיוב אשראי</div>

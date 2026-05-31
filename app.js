@@ -130,11 +130,14 @@ window.doGuest = function() {
 auth.onAuthStateChanged((user) => {
   if (user) {
     userKey = 'users/' + user.uid;
+    const userEmail = user.email || user.displayName;
     const ub = document.getElementById('ubar');
     if (ub) {
       ub.style.display = 'flex';
       ub.innerHTML = (user.photoURL?'<img src="'+user.photoURL+'">':'') + '<span>' + (user.displayName||user.email).split(' ')[0] + '</span><span style="opacity:.4;margin-right:4px">| יציאה</span>';
     }
+    // Update page title with email
+    document.title = 'כסף חכם - ' + userEmail;
     // Hide login screen and show app
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-container').style.display = 'block';
@@ -144,6 +147,7 @@ auth.onAuthStateChanged((user) => {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-container').style.display = 'none';
     userKey = null;
+    document.title = 'כסף חכם';
   }
 });
 
@@ -246,6 +250,10 @@ function save(){
   }
 }
 function load(){
+  // If user is authenticated, don't load from localStorage - Firebase is the source of truth
+  if (userKey && userKey.startsWith('users/')) {
+    return;
+  }
   try{
     const t=localStorage.getItem('kc3_t');txns=t?JSON.parse(t):JSON.parse(JSON.stringify(DTXNS));
     const b=localStorage.getItem('kc3_b');budgets=b?JSON.parse(b):{};
