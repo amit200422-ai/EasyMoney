@@ -593,6 +593,126 @@ function populateCmp(){const months=[...new Set(txns.map(t=>mk(t.date)))].sort()
 function renderCmp(){const a=document.getElementById('cmp-a')?.value,b=document.getElementById('cmp-b')?.value;if(!a||!b)return;const s=m=>({inc:mTxns(m).filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),exp:mTxns(m).filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),sav:mTxns(m).filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0)});const sa=s(a),sb=s(b);const row=(lbl,va,vb)=>{const diff=va-vb;return'<div style="display:grid;grid-template-columns:80px 1fr 1fr 65px;gap:6px;align-items:center;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--t2)">'+lbl+'</span><span style="font-weight:700">'+fmt(va)+'</span><span style="font-weight:700">'+fmt(vb)+'</span><span class="chg '+(diff>=0?'cup':'cdn')+'">'+(diff>=0?'+':'')+fmt(Math.abs(diff))+'</span></div>';};document.getElementById('cmp-detail').innerHTML='<div style="display:grid;grid-template-columns:80px 1fr 1fr 65px;gap:6px;font-size:10px;color:var(--t3);margin-bottom:4px;font-weight:700;text-transform:uppercase"><span></span><span>'+heM(a)+'</span><span>'+heM(b)+'</span><span>הפרש</span></div>'+row('הכנסות',sa.inc,sb.inc)+row('הוצאות',sa.exp,sb.exp)+row('חיסכון',sa.sav,sb.sav);applyPrivacyMode();}
 function renderAllTop5(){document.getElementById('all-top5').innerHTML=txns.filter(t=>t.type==='expense').sort((a,b)=>b.amount-a.amount).slice(0,5).map((t,i)=>'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-weight:800;color:var(--t3);min-width:20px">#'+(i+1)+'</span><span class="pill '+(CPILL[t.cat]||'p-other')+'">'+(CAT[t.cat]||t.cat)+'</span><span style="flex:1;font-size:13px">'+t.desc+'</span><span style="color:var(--t2);font-size:11px">'+t.date.slice(0,7)+'</span><span style="font-weight:700;color:var(--red)">'+fmt(t.amount)+'</span></div>').join('');applyPrivacyMode();}
 
+// ─── WEEKLY SUMMARY ─────────────────────────────────────────────────────────────
+function getWeeklySummary() {
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+  
+  // Only show weekly summary on Saturday evening (after 6 PM)
+  if (dayOfWeek !== 6 || today.getHours() < 18) {
+    return null;
+  }
+  
+  // Get current week's transactions (last 7 days)
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const weekTxns = txns.filter(t => new Date(t.date) >= weekAgo);
+  
+  // Get previous month's transactions
+  const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const prevMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+  const prevMonthTxns = txns.filter(t => {
+    const d = new Date(t.date);
+    return d >= prevMonth && d <= prevMonthEnd;
+  });
+  
+  // Calculate week stats
+  const weekInc = weekTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const weekExp = weekTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const weekSav = weekTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
+  const weekNet = weekInc - weekExp - weekSav;
+  
+  // Calculate previous month stats
+  const prevMonthInc = prevMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const prevMonthExp = prevMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const prevMonthSav = prevMonthTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
+  const prevMonthNet = prevMonthInc - prevMonthExp - prevMonthSav;
+  
+  // Find top expense category this week
+  const catExpenses = {};
+  weekTxns.filter(t => t.type === 'expense').forEach(t => {
+    catExpenses[t.cat] = (catExpenses[t.cat] || 0) + t.amount;
+  });
+  const topCat = Object.entries(catExpenses).sort((a, b) => b[1] - a[1])[0];
+  
+  // Build summary
+  let summary = '📊 סיכום שבועי\n\n';
+  summary += '💰 השבוע:\n';
+  summary += `הכנסות: ${fmt(weekInc)} ₪\n`;
+  summary += `הוצאות: ${fmt(weekExp)} ₪\n`;
+  summary += `חיסכון: ${fmt(weekSav)} ₪\n`;
+  summary += `מאזן: ${fmt(weekNet)} ₪\n\n`;
+  
+  summary += '📅 חודש שעבר:\n';
+  summary += `הכנסות: ${fmt(prevMonthInc)} ₪\n`;
+  summary += `הוצאות: ${fmt(prevMonthExp)} ₪\n`;
+  summary += `חיסכון: ${fmt(prevMonthSav)} ₪\n`;
+  summary += `מאזן: ${fmt(prevMonthNet)} ₪\n\n`;
+  
+  if (topCat) {
+    summary += `🎯 הקטגוריה הכי יקרה השבוע: ${CAT[topCat] || topCat} (${fmt(topCat[1])} ₪)\n\n`;
+  }
+  
+  if (weekNet > 0) {
+    summary += '✅ מצוין! נשמר על מאזן חיובי.';
+  } else if (weekNet < 0) {
+    summary += '⚠️ יש גירעון השבוע. נסה להקטין הוצאות.';
+  } else {
+    summary += '⚖️ מאזן ניטרלי השבוע.';
+  }
+  
+  return summary;
+}
+
+function showWeeklySummaryInTips() {
+  const summary = getWeeklySummary();
+  if (!summary) return;
+  
+  const tipsList = document.getElementById('tips-list');
+  if (tipsList) {
+    const weeklyTip = document.createElement('div');
+    weeklyTip.className = 'tip ok';
+    weeklyTip.innerHTML = `
+      <div class="tip-icon">📊</div>
+      <div>
+        <div class="tip-t">סיכום שבועי</div>
+        <div class="tip-b" style="white-space: pre-line">${summary}</div>
+      </div>
+    `;
+    tipsList.insertBefore(weeklyTip, tipsList.firstChild);
+  }
+  
+  // Send push notification if available (for PWA/App)
+  sendWeeklySummaryNotification(summary);
+}
+
+async function sendWeeklySummaryNotification(summary) {
+  // Check if running as PWA/App with Capacitor
+  if (typeof Capacitor !== 'undefined' && Capacitor.Plugins && Capacitor.Plugins.LocalNotifications) {
+    try {
+      const { LocalNotifications } = Capacitor.Plugins;
+      const permission = await LocalNotifications.checkPermissions();
+      
+      if (permission.display === 'granted') {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: '📊 סיכום שבועי',
+              body: summary.split('\n')[0] + ' - לחץ לפרטים מלאים',
+              id: 1,
+              schedule: { at: new Date() },
+              sound: 'default',
+              smallIcon: 'ic_stat_icon_config_sample',
+              largeIcon: 'ic_launcher'
+            }
+          ]
+        });
+      }
+    } catch (e) {
+      console.log('Push notification not available:', e);
+    }
+  }
+}
+
 function renderTips(){const mt=curMt(),inc=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),exp=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),sav=mt.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0),allSav=txns.filter(t=>t.type==='savings').reduce((s,t)=>s+t.amount,0),food=mt.filter(t=>t.cat==='food').reduce((s,t)=>s+t.amount,0),ent=mt.filter(t=>t.cat==='entertainment').reduce((s,t)=>s+t.amount,0),invT=investments.reduce((s,i)=>s+iILS(i),0),tips=[];
   if(exp>inc)tips.push({type:'warn',icon:'⚠️',t:'גירעון חודשי',b:'הוצאות ('+fmt(exp)+') עולות על הכנסות ('+fmt(inc)+'). גירעון של '+fmt(exp-inc)+'.'});
   if(inc>0){const p=Math.round(sav/inc*100);if(p<20)tips.push({type:'info',icon:'💡',t:'הגדל חיסכון',b:'אתה חוסך '+p+'% מהכנסתך. מומלץ לשאוף ל-20%. נדרש עוד '+fmt(inc*0.2-sav)+' החודש.'});else tips.push({type:'ok',icon:'✅',t:'יחס חיסכון מצוין',b:'חוסך '+p+'% — שמור על הקצב!'});}
@@ -616,7 +736,11 @@ function renderTips(){const mt=curMt(),inc=mt.filter(t=>t.type==='income').reduc
   const ob=Object.entries(budgets).filter(([c,bud])=>mt.filter(t=>t.type==='expense'&&t.cat===c).reduce((s,t)=>s+t.amount,0)>bud);
   if(ob.length)tips.push({type:'warn',icon:'🚨',t:'חריגת תקציב',b:'חרגת מהתקציב ב: '+ob.map(([c])=>CAT[c]).join(', ')});
   if(!tips.length)tips.push({type:'ok',icon:'🎯',t:'הכל נראה טוב',b:'הוסף עוד תנועות לקבלת ניתוח מפורט.'});
-  document.getElementById('tips-list').innerHTML=tips.map(tip=>'<div class="tip '+tip.type+'"><div class="tip-icon">'+tip.icon+'</div><div><div class="tip-t">'+tip.t+'</div><div class="tip-b">'+tip.b+'</div></div></div>').join('');applyPrivacyMode();}
+  document.getElementById('tips-list').innerHTML=tips.map(tip=>'<div class="tip '+tip.type+'"><div class="tip-icon">'+tip.icon+'</div><div><div class="tip-t">'+tip.t+'</div><div class="tip-b">'+tip.b+'</div></div></div>').join('');
+  // Add weekly summary if it's Saturday evening
+  showWeeklySummaryInTips();
+  applyPrivacyMode();
+}
 
 // ─── CREDIT CARD IMPORT ──────────────────────────────────────────────────────
 let selectedBank = 'isracard';
