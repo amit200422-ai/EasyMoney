@@ -51,6 +51,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .ni:hover{background:var(--gll);color:var(--t1)}
 .ni.active{background:var(--gl);color:var(--green);font-weight:600}
 .ni.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:4px;height:50%;background:var(--green);border-radius:99px}
+.ni[onclick*="changeGoogleAccount"]{color:var(--red);padding:14px 16px}
 .sep{height:1px;background:var(--border);margin:16px 0}
 .sb{margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border)}
 /* MAIN */
