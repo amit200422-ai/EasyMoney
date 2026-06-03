@@ -2050,6 +2050,14 @@ function togglePrivacyMode() {
   applyPrivacyMode();
 }
 
+// Mobile Sidebar Toggle
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('mob-sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('show');
+  }
+}
+
 function applyPrivacyMode() {
   const btn = document.getElementById('privacy-btn');
   const lbl = document.getElementById('privacy-lbl');
