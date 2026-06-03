@@ -204,42 +204,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .mn.active{color:var(--green);background:var(--gll)}
 .mn:active{transform:scale(0.95)}
 /* RESPONSIVE */
-@media(max-width:768px){
-  .sidebar{display:none}
-  .main{margin-right:0;padding:1rem 1rem 85px}
-  .mob-nav{display:flex}
-  .g4{grid-template-columns:repeat(2,1fr)}
-  .g3{grid-template-columns:repeat(2,1fr)}
-  .g2{grid-template-columns:1fr;gap:.9rem}
-  .bstrip{grid-template-columns:1fr}
-  .inv-grid{grid-template-columns:repeat(2,1fr)}
-  .pt{font-size:19px}
-  .tbl th,.tbl td{padding:8px 9px;font-size:12px}
-  .frow{flex-direction:column}
-  .fi{min-width:unset;width:100%}
-  .chat-bot-wrapper-desktop{display:none}
-  .chat-bot{display:none}
-  .chat-icon{display:none}
-  .toast{bottom:95px}
-  .btn{min-height:44px;padding:12px 18px;font-size:14px}
-  .btn-sm{min-height:40px;padding:10px 14px;font-size:13px}
-  .btn-del{min-width:44px;min-height:44px;padding:8px}
-  .btn-ic{min-width:44px;min-height:44px;padding:10px}
-  .fi input,.fi select,.fi textarea{min-height:48px;padding:12px 14px;font-size:14px}
-  .ni{min-height:48px;padding:12px 14px;font-size:14px}
-  .budrow{padding:14px}
-  .sub-card{padding:14px}
-  .imp-row{padding:12px 14px}
-  .card{margin-bottom:1rem;padding:1.2rem}
-  .sc{padding:1rem}
-  .bal{padding:1.2rem}
-  .tip{padding:1rem}
-  .modal{padding:1.4rem;width:95vw}
-  .dw{flex-direction:column;align-items:center}
-  .chart-wrap{overflow-x:auto;overflow-y:hidden;margin:0 -1rem;padding:0 1rem}
-  .chart-wrap canvas{min-width:300px;max-width:100%;height:auto!important}
-  .tbl-wrap{overflow-x:auto;overflow-y:hidden;margin:0 -1rem;padding:0 1rem}
-}
 @media(min-width:769px) and (max-width:1100px){
   .sidebar{width:190px}
   .main{margin-right:190px}
@@ -304,11 +268,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .login-btn{width:100%;font-size:16px;padding:18px 28px;justify-content:center;display:flex;align-items:center;gap:14px;background:#ffffff;color:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:16px;cursor:pointer;transition:all 0.3s ease;font-weight:600;font-family:'Inter',sans-serif}
 .login-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,255,255,0.15)}
 .login-footer{margin-top:2rem;font-size:13px;color:var(--t3);display:flex;align-items:center;justify-content:center;gap:8px}
-@media(max-width:768px){
-  .login-container{flex-direction:column;gap:30px}
-  .login-illustration{display:none}
-  .login-box{padding:2rem;max-width:100%}
-}
 
 /* APP CONTAINER (Hidden until login) */
 #app-container{display:none}
