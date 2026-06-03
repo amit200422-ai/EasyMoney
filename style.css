@@ -52,6 +52,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .ni.active{background:var(--gl);color:var(--green);font-weight:600}
 .ni.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:4px;height:50%;background:var(--green);border-radius:99px}
 .ni[onclick*="changeGoogleAccount"]{color:var(--red);padding:14px 16px}
+.ubar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--rm);font-size:14px;font-weight:500;color:var(--t2);cursor:pointer;border:none;background:transparent;width:100%;text-align:right;font-family:'Inter',sans-serif;transition:all 0.2s;margin-bottom:4px;position:relative}
+.ubar:hover{background:var(--gll);color:var(--t1)}
+.ubar img{width:22px;height:22px;border-radius:50%;flex-shrink:0}
 .sep{height:1px;background:var(--border);margin:16px 0}
 .sb{margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--border)}
 /* MAIN */
