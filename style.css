@@ -226,7 +226,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .ins-v{font-size:17px;font-weight:800}
 .ins-s{font-size:11px;color:var(--t3);margin-top:4px}
 /* MOBILE NAV */
-.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:70px;background:var(--card);border-top:1px solid var(--border);align-items:center;padding:0 8px;backdrop-filter:blur(10px);overflow-x:auto;overflow-y:hidden;gap:4px}
+.mob-nav{display:none !important;position:fixed;bottom:0;left:0;right:0;height:70px;background:var(--card);border-top:1px solid var(--border);align-items:center;padding:0 8px;backdrop-filter:blur(10px);overflow-x:auto;overflow-y:hidden;gap:4px;z-index:50;visibility:hidden;opacity:0;pointer-events:none}
 .mob-nav::-webkit-scrollbar{height:3px}
 .mob-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 .mn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:transparent;color:var(--t3);font-family:'Heebo',sans-serif;transition:all .15s;min-width:64px;min-height:60px;flex-shrink:0}
@@ -238,7 +238,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 @media(max-width:768px){
   .sidebar{display:none}
   .main{margin-right:0;padding:1rem 1rem 85px}
-  .mob-nav{display:flex}
+  .mob-nav{display:flex !important;visibility:visible;opacity:1;pointer-events:auto}
   .g4{grid-template-columns:repeat(2,1fr)}
   .g3{grid-template-columns:repeat(2,1fr)}
   .g2{grid-template-columns:1fr;gap:.9rem}
@@ -402,7 +402,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 /* ============================================
    הפרדה מוחלטת לעיצוב מובייל (Isolation)
    ============================================ */
-body.mobile .mob-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:rgba(20,30,48,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0}
+/* Hide all mobile elements on desktop by default */
+body:not(.mobile) .mob-header{display:none !important;visibility:hidden;opacity:0;pointer-events:none}
+body:not(.mobile) .mob-sidebar{display:none !important;visibility:hidden;opacity:0;pointer-events:none}
+body:not(.mobile) .mob-nav{display:none !important;visibility:hidden;opacity:0;pointer-events:none}
+
+body.mobile .mob-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:rgba(20,30,48,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;visibility:visible;opacity:1;pointer-events:auto}
 body.mobile .mob-logo{display:flex;align-items:center;gap:10px}
 body.mobile .mob-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--gd));display:flex;align-items:center;justify-content:center}
 body.mobile .mob-logo-icon svg{width:18px;height:18px;color:#0d1117}
@@ -413,8 +418,8 @@ body.mobile .mob-hamburger:hover{background:rgba(255,255,255,0.1)}
 body.mobile .mob-hamburger svg{width:22px;height:22px;color:var(--t1)}
   
 /* MOBILE SIDEBAR (HAMBURGER MENU) */
-body.mobile .mob-sidebar{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px)}
-body.mobile .mob-sidebar.show{display:flex}
+body.mobile .mob-sidebar{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);visibility:hidden;opacity:0;pointer-events:none}
+body.mobile .mob-sidebar.show{display:flex;visibility:visible;opacity:1;pointer-events:auto}
 body.mobile .mob-sidebar-content{width:280px;background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--border);height:100%;padding:20px;overflow-y:auto;margin-left:auto}
 body.mobile .mob-sidebar-close{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:20px}
 body.mobile .mob-sidebar-close svg{width:20px;height:20px;color:var(--t1)}
