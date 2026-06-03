@@ -18,7 +18,7 @@
 <link rel="manifest" id="pwa-manifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="כסף חכם">
-<script src="app.js?v=62"></script>
+<script src="app.js?v=78"></script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -96,6 +96,116 @@
     </button>
     <div class="login-divider">או</div>
     <button class="login-guest" onclick="window.doGuest()">המשך ללא כניסה (מכשיר זה בלבד)</button>
+  </div>
+</div>
+
+<!-- MOBILE HEADER -->
+<div class="mob-header">
+  <div class="mob-logo">
+    <div class="mob-logo-icon">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93V18h-2v-1.07C9.39 16.64 8 15.08 8 13h2c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2c-2.21 0-4-1.79-4-4 0-1.87 1.28-3.43 3-3.87V2h2v1.13c1.72.44 3 2 3 3.87h-2c0-1.1-.9-2-2-2s-2 .9-2 2 .9 2 2 2c2.21 0 4 1.79 4 4 0 1.87-1.28 3.43-3 3.93z"/>
+      </svg>
+    </div>
+    <div class="mob-logo-txt">כסף<span>חכם</span></div>
+  </div>
+  <div class="mob-hamburger" onclick="toggleMobileSidebar()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </div>
+</div>
+
+<!-- MOBILE SIDEBAR -->
+<div class="mob-sidebar" id="mob-sidebar">
+  <div class="mob-sidebar-content">
+    <div class="mob-sidebar-close" onclick="toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </div>
+    
+    <div class="mob-nav-group">כללי</div>
+    <button class="mob-nav-item" onclick="nav('dashboard',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      סקירה כללית
+    </button>
+    <button class="mob-nav-item" onclick="nav('transactions',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h12M3 18h8"/></svg>
+      תנועות
+    </button>
+    <button class="mob-nav-item" onclick="nav('monthly',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+      גרף חודשי
+    </button>
+    
+    <div class="mob-nav-group">ניהול</div>
+    <button class="mob-nav-item" onclick="nav('budget',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      תקציב
+    </button>
+    <button class="mob-nav-item" onclick="nav('savings',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 8a5 5 0 00-9.9-1H3v9h14v-2.5"/><path d="M10 12v3m4-3v3"/></svg>
+      כיס חיסכון
+    </button>
+    <button class="mob-nav-item" onclick="nav('recurring',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l3-3 3 3M6 3v12"/><path d="M21 18l-3 3-3-3m3 3V6"/></svg>
+      הוצאות קבועות
+    </button>
+    
+    <div class="mob-nav-group">השקעות</div>
+    <button class="mob-nav-item" onclick="nav('stocks',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      תיק השקעות
+    </button>
+    <button class="mob-nav-item" onclick="nav('networth',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.38 1.34-2.5 3-2.5s3 1.12 3 2.5-1.34 2.5-3 2.5-3 1.12-3 2.5 1.34 2.5 3 2.5"/></svg>
+      שווי נטו
+    </button>
+    
+    <div class="mob-nav-group">ניתוח</div>
+    <button class="mob-nav-item" onclick="nav('import',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      ייבוא אשראי
+    </button>
+    <button class="mob-nav-item" onclick="nav('subscriptions',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      מנויים פעילים
+    </button>
+    <button class="mob-nav-item" onclick="nav('ai',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      עוזר AI
+    </button>
+    <button class="mob-nav-item" onclick="nav('analysis',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      ניתוח מתקדם
+    </button>
+    <button class="mob-nav-item" onclick="nav('tips',this);toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 00-4 12.9V17h8v-2.1A7 7 0 0012 2zM9 21h6M10 17h4"/></svg>
+      המלצות
+    </button>
+    
+    <div class="mob-nav-sep"></div>
+    
+    <button class="mob-nav-item" onclick="togglePrivacyMode();toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Privacy Mode
+    </button>
+    <button class="mob-nav-item" onclick="toggleTheme();toggleMobileSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      מצב בהיר
+    </button>
+    <button class="mob-nav-item" onclick="changeGoogleAccount()" style="color:var(--red)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      שנה חשבון Google
+    </button>
+    <button class="btn btn-g" style="width:100%;margin-top:8px;font-size:12px;justify-content:center" onclick="exportXlsx();toggleMobileSidebar()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      ייצוא Excel
+    </button>
   </div>
 </div>
 

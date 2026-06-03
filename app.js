@@ -1,3 +1,25 @@
+// Toggle mobile sidebar
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('mob-sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('show');
+  }
+}
+
+// Detect screen size and add mobile class
+function detectMobile() {
+  const body = document.body;
+  if (window.innerWidth <= 768) {
+    body.classList.add('mobile');
+  } else {
+    body.classList.remove('mobile');
+  }
+}
+
+// Run on load and resize
+window.addEventListener('load', detectMobile);
+window.addEventListener('resize', detectMobile);
+
 // Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBPYX5IGfEf6aHMjUNAaComLa_PLYc9jQA",
