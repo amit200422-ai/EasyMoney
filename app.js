@@ -1352,28 +1352,29 @@ function generateAIResponse(question) {
   const invVal = investments.reduce((s, i) => s + iILS(i), 0);
   const invPnL = investments.reduce((s, i) => s + iPnL(i), 0);
   
-  if (q.includes('הכנסות') || q.includes('הכנסה')) {
+  // More flexible keyword matching
+  if (q.includes('הכנס') || q.includes('הכנסות') || q.includes('כמה הכנסתי') || q.includes('הרווח') || q.includes('הכנסתי')) {
     return `ההכנסות החודשיות שלך הן ${fmt(inc)} ₪`;
   }
-  if (q.includes('הוצאות') || q.includes('הוצאה')) {
+  if (q.includes('הוצא') || q.includes('הוצאות') || q.includes('כמה הוצאתי') || q.includes('הוצאתי') || q.includes('בזבזתי')) {
     return `ההוצאות החודשיות שלך הן ${fmt(exp)} ₪`;
   }
-  if (q.includes('חיסכון') || q.includes('חסכון')) {
+  if (q.includes('חיסכ') || q.includes('חסכ') || q.includes('חיסכון') || q.includes('חסכון') || q.includes('כמה חסכתי') || q.includes('כמה חיסכתי')) {
     return `החיסכון החודשי שלך הוא ${fmt(sav)} ₪`;
   }
-  if (q.includes('מאזן') || q.includes('באלנס')) {
+  if (q.includes('מאזן') || q.includes('באלנס') || q.includes('נשאר') || q.includes('נשאר לי') || q.includes('כמה נשאר')) {
     return `המאזן החודשי שלך הוא ${fmt(balance)} ₪ ${balance >= 0 ? '✅' : '⚠️'}`;
   }
-  if (q.includes('השקעות') || q.includes('מניות')) {
+  if (q.includes('השקע') || q.includes('השקעות') || q.includes('מניות') || q.includes('תיק') || q.includes('שווי תיק')) {
     return `שווי תיק ההשקעות שלך הוא ${fmt(invVal)} ₪ עם ${invPnL >= 0 ? 'רווח' : 'הפסד'} של ${fmt(Math.abs(invPnL))} ₪`;
   }
-  if (q.includes('קטגוריה') || q.includes('יוקר')) {
+  if (q.includes('קטגור') || q.includes('יוקר') || q.includes('הכי יקר') || q.includes('איפה הוצאתי הכי הרבה')) {
     if (topCat) {
       return `הקטגוריה הכי יקרה החודש היא ${CAT[topCat] || topCat[0]} עם ${fmt(topCat[1])} ₪`;
     }
     return 'אין מספיק נתונים להציג את הקטגוריה הכי יקרה';
   }
-  if (q.includes('תקציב') || q.includes('באדגט')) {
+  if (q.includes('תקציב') || q.includes('באדגט') || q.includes('חרגתי') || q.includes('מסגרת')) {
     const overBudget = Object.entries(budgets).filter(([c, bud]) => {
       const spent = mt.filter(t => t.type === 'expense' && t.cat === c).reduce((s, t) => s + t.amount, 0);
       return spent > bud;
@@ -1383,9 +1384,12 @@ function generateAIResponse(question) {
     }
     return 'אתה במסגרת התקציב! 🎯';
   }
+  if (q.includes('כמה') || q.includes('מה המצב') || q.includes('סיכום') || q.includes('סטטוס')) {
+    return `סיכום החודש: הכנסות ${fmt(inc)} ₪, הוצאות ${fmt(exp)} ₪, חיסכון ${fmt(sav)} ₪, מאזן ${fmt(balance)} ₪`;
+  }
   
   // Default response
-  return `אני יכול לעזור לך עם שאלות על הנתונים הפיננסיים שלך. נסה לשאות על הכנסות, הוצאות, חיסכון, מאזן, השקעות, קטגוריות או תקציב.`;
+  return `אני יכול לעזור לך עם שאלות על הנתונים הפיננסיים שלך. נסה לשאול על הכנסות, הוצאות, חיסכון, מאזן, השקעות, קטגוריות או תקציב.`;
 }
 
 // Show welcome message on AI page
