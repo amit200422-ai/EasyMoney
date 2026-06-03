@@ -143,7 +143,7 @@ auth.onAuthStateChanged((user) => {
     const ub = document.getElementById('ubar');
     if (ub) {
       ub.style.display = 'flex';
-      ub.innerHTML = (user.photoURL?'<img src="'+user.photoURL+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover">':'') + '<span>' + (user.displayName||user.email).split(' ')[0] + '</span><span style="opacity:.4;margin-right:4px">| יציאה</span>';
+      ub.innerHTML = (user.photoURL?'<img src="'+user.photoURL+'">':'') + '<span>' + (user.displayName||user.email).split(' ')[0] + '</span><span style="opacity:.4;margin-right:4px">| יציאה</span>';
     }
     // Update page title with email
     document.title = 'כסף חכם - ' + userEmail;
@@ -263,7 +263,6 @@ function renderCheckingBalance(){
   var inc=rel.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
   var exp=rel.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
   var sav=rel.filter(function(t){return t.type==='savings';}).reduce(function(s,t){return s+t.amount;},0);
-  var stock=rel.filter(function(t){return t.cat==='stock_deposit';}).reduce(function(s,t){return s+t.amount;},0);
   var bal=checkingData.opening+inc-exp-sav;
   document.getElementById('ck-bank-name').textContent=checkingData.bank;
   document.getElementById('ck-bal').textContent=fmt(bal);
@@ -271,7 +270,6 @@ function renderCheckingBalance(){
   document.getElementById('ck-inc').textContent='+'+fmt(inc);
   document.getElementById('ck-exp').textContent='-'+fmt(exp);
   document.getElementById('ck-sav').textContent='-'+fmt(sav);
-  document.getElementById('ck-stock').textContent='-'+fmt(stock);
   document.getElementById('ck-sub').textContent=od?'יתרת פתיחה '+checkingData.opening.toLocaleString('he-IL')+'₪ בתאריך '+od:'';
 }
 // ─── LOCK SCREEN — מושבת, משתמשים בGoogle Auth בלבד ─────────────────────
@@ -1340,17 +1338,6 @@ function generateAIResponse(question) {
   const mt = curMt();
   const allTxns = txns;
   
-  // Calculate cash balance (income - expenses - savings for all time)
-  const allIncome = allTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-  const allExpenses = allTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const allSavings = allTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
-  const cashBalance = allIncome - allExpenses - allSavings;
-  
-  // Get all-time top expenses
-  const allTimeTopExpenses = allTxns.filter(t => t.type === 'expense')
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
-  
   // Comprehensive data analysis
   const data = {
     currentMonth: {
@@ -1361,44 +1348,33 @@ function generateAIResponse(question) {
       transactions: mt.length
     },
     allTime: {
-      income: allIncome,
-      expenses: allExpenses,
-      savings: allSavings,
-      transactions: allTxns.length,
-      cashBalance: cashBalance
+      income: allTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+      expenses: allTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+      savings: allTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0),
+      transactions: allTxns.length
     },
     investments: {
       totalValue: investments.reduce((s, i) => s + iILS(i), 0),
       totalCost: investments.reduce((s, i) => s + (i.cost || 0), 0),
       pnl: investments.reduce((s, i) => s + iPnL(i), 0),
-      count: investments.length,
-      details: investments.map(inv => ({
-        name: inv.name,
-        value: iCurVal(inv),
-        cost: inv.cost || 0,
-        pnl: iPnL(inv),
-        pnlPercent: inv.cost > 0 ? Math.round(iPnL(inv) / inv.cost * 100) : 0,
-        deposits: inv.deposits || []
-      }))
+      count: investments.length
     },
     categories: {},
-    topExpenses: mt.filter(t => t.type === 'expense')
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5),
-    allTimeTopExpenses: allTimeTopExpenses,
-    budgetStatus: {},
-    subscriptions: subscriptions || []
+    topExpenses: [],
+    budgetStatus: {}
   };
   
   data.currentMonth.balance = data.currentMonth.income - data.currentMonth.expenses - data.currentMonth.savings;
-  
-  // Calculate total wealth
-  data.totalWealth = cashBalance + allSavings + data.investments.totalValue;
   
   // Analyze categories
   mt.filter(t => t.type === 'expense').forEach(t => {
     data.categories[t.cat] = (data.categories[t.cat] || 0) + t.amount;
   });
+  
+  // Get top expenses
+  data.topExpenses = mt.filter(t => t.type === 'expense')
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
   
   // Check budget status
   Object.entries(budgets).forEach(([cat, limit]) => {
@@ -1417,88 +1393,6 @@ function generateAIResponse(question) {
 }
 
 function analyzeQuestion(question, data) {
-  // Cash balance questions
-  if (question.includes('עוש') || question.includes('כסף זמין') || question.includes('מזומן') || question.includes('ביד')) {
-    return `המזומן הזמין שלך (עוש) הוא ${fmt(data.allTime.cashBalance)} ₪.`;
-  }
-  
-  // Total wealth questions
-  if (question.includes('הון') || question.includes('עוש כללי') || question.includes('סה"כ הכסף') || question.includes('שווי כולל') || question.includes('כמה כסף יש לי בסה"כ')) {
-    return `השווי הכולל שלך הוא ${fmt(data.totalWealth)} ₪:
-• מזומן: ${fmt(data.allTime.cashBalance)} ₪
-• חיסכון: ${fmt(data.allTime.savings)} ₪
-• תיק השקעות: ${fmt(data.investments.totalValue)} ₪`;
-  }
-  
-  // Savings balance questions
-  if (question.includes('חיסכון') && !question.includes('כמה חסכתי') && !question.includes('חיסכון נמוך') && !question.includes('יחס חיסכון')) {
-    if (question.includes('חודש') || question.includes('החודש')) {
-      return `החיסכון החודשי שלך הוא ${fmt(data.currentMonth.savings)} ₪.`;
-    }
-    if (question.includes('כל הזמן') || question.includes('סך הכל')) {
-      return `סך החיסכון שלך בכל הזמן הוא ${fmt(data.allTime.savings)} ₪.`;
-    }
-    return `החיסכון הכולל שלך הוא ${fmt(data.allTime.savings)} ₪.`;
-  }
-  
-  // Subscription questions with end dates and payments
-  if (question.includes('מנוי') || question.includes('סאבסקריפשן')) {
-    if (data.subscriptions.length === 0) return 'אין מנויים רשומים.';
-    const activeSubs = data.subscriptions.filter(s => s.active);
-    const totalMonthly = activeSubs.reduce((sum, s) => sum + (s.price || 0), 0);
-    const totalYearly = totalMonthly * 12;
-    
-    let response = `יש לך ${activeSubs.length} מנויים פעילים:\n`;
-    activeSubs.forEach(s => {
-      const endDate = s.endDate ? ` (נגמר ב-${s.endDate})` : '';
-      const yearly = (s.price || 0) * 12;
-      response += `• ${s.name}: ${fmt(s.price)} ₪ לחודש (${fmt(yearly)} ₪ לשנה)${endDate}\n`;
-    });
-    response += `\nסה"כ: ${fmt(totalMonthly)} ₪ לחודש (${fmt(totalYearly)} ₪ לשנה)`;
-    return response;
-  }
-  
-  // Stock investment details with names, amounts, and percentages
-  if (question.includes('באיזה מניות') || question.includes('איזה השקעות') || question.includes('רשימת מניות') || question.includes('פרטי השקעות')) {
-    if (data.investments.count === 0) return 'אין השקעות רשומות.';
-    let response = `ההשקעות שלך:\n`;
-    data.investments.details.forEach(inv => {
-      const pnlStatus = inv.pnl >= 0 ? 'רווח' : 'הפסד';
-      response += `• ${inv.name}: שווי ${fmt(inv.value)} ₪, ${pnlStatus} של ${fmt(Math.abs(inv.pnl))} ₪ (${inv.pnlPercent}%)\n`;
-    });
-    return response;
-  }
-  
-  // Stock deposit questions
-  if (question.includes('הפקד') || question.includes('פקדתי') || question.includes('כמה פעמים')) {
-    if (data.investments.count === 0) return 'אין השקעות רשומות.';
-    const allDeposits = data.investments.details.flatMap(inv => inv.deposits.map(d => ({...d, invName: inv.name})));
-    if (allDeposits.length === 0) return 'לא בוצעו הפקדות להשקעות עדיין.';
-    const totalDeposited = allDeposits.reduce((s, d) => s + d.amount, 0);
-    const depositDetails = allDeposits.map(d => `${d.invName}: ${fmt(d.amount)} ₪ ב-${d.date.slice(5).replace('-','/')}`).join(', ');
-    return `בוצעו ${allDeposits.length} הפקדות בסך ${fmt(totalDeposited)} ₪: ${depositDetails}.`;
-  }
-  
-  // Stock profit per investment
-  if (question.includes('רווח') || question.includes('הפסד') || question.includes('תשואת תשואה')) {
-    if (data.investments.count === 0) return 'אין השקעות רשומות.';
-    const profitDetails = data.investments.details.map(inv => {
-      const pnlStatus = inv.pnl >= 0 ? 'רווח' : 'הפסד';
-      return `${inv.name}: ${pnlStatus} של ${fmt(Math.abs(inv.pnl))} ₪ (${inv.pnlPercent}%)`;
-    }).join(', ');
-    return `רווח/הפסד לכל השקעה: ${profitDetails}.`;
-  }
-  
-  // Top 5 expenses questions
-  if (question.includes('הוצאות הגדולות') || question.includes('הכי גדול') || question.includes('טופ')) {
-    if (question.includes('כל הזמן') || question.includes('בכל הזמנים') || question.includes('היסטוריה')) {
-      if (data.allTimeTopExpenses.length === 0) return 'אין הוצאות רשומות.';
-      return `ההוצאות הגדולות בכל הזמן: ${data.allTimeTopExpenses.slice(0, 5).map(t => `${t.desc}: ${fmt(t.amount)} ₪`).join(', ')}.`;
-    }
-    if (data.topExpenses.length === 0) return 'אין הוצאות רשומות החודש.';
-    return `ההוצאות הגדולות החודש: ${data.topExpenses.slice(0, 5).map(t => `${t.desc}: ${fmt(t.amount)} ₪`).join(', ')}.`;
-  }
-  
   // Income questions
   if (question.includes('הכנס') || question.includes('הרווח') || question.includes('קיבלתי')) {
     if (question.includes('חודש') || question.includes('החודש')) {
@@ -1519,6 +1413,17 @@ function analyzeQuestion(question, data) {
       return `סך ההוצאות שלך בכל הזמן הוא ${fmt(data.allTime.expenses)} ₪.`;
     }
     return `ההוצאות החודשיות שלך הן ${fmt(data.currentMonth.expenses)} ₪, וסך הכל ${fmt(data.allTime.expenses)} ₪ בכל הזמן.`;
+  }
+  
+  // Savings questions
+  if (question.includes('חיסכ') || question.includes('חסכ')) {
+    if (question.includes('חודש') || question.includes('החודש')) {
+      return `החיסכון החודשי שלך הוא ${fmt(data.currentMonth.savings)} ₪.`;
+    }
+    if (question.includes('כל הזמן') || question.includes('סך הכל')) {
+      return `סך החיסכון שלך בכל הזמן הוא ${fmt(data.allTime.savings)} ₪.`;
+    }
+    return `החיסכון החודשי שלך הוא ${fmt(data.currentMonth.savings)} ₪, וסך הכל ${fmt(data.allTime.savings)} ₪ בכל הזמן.`;
   }
   
   // Balance questions
@@ -1557,6 +1462,12 @@ function analyzeQuestion(question, data) {
     return 'לא הגדרת תקציבים עדיין.';
   }
   
+  // Top expenses questions
+  if (question.includes('הוצאות הגדולות') || question.includes('הכי גדול') || question.includes('טופ')) {
+    if (data.topExpenses.length === 0) return 'אין הוצאות רשומות החודש.';
+    return `ההוצאות הגדולות החודש: ${data.topExpenses.slice(0, 3).map(t => `${t.desc}: ${fmt(t.amount)} ₪`).join(', ')}.`;
+  }
+  
   // General summary questions
   if (question.includes('סיכום') || question.includes('מה המצב') || question.includes('סטטוס') || question.includes('כמה') || question.includes('מה')) {
     return `סיכום החודש:
@@ -1565,9 +1476,6 @@ function analyzeQuestion(question, data) {
 • חיסכון: ${fmt(data.currentMonth.savings)} ₪
 • מאזן: ${fmt(data.currentMonth.balance)} ₪
 • תיק השקעות: ${fmt(data.investments.totalValue)} ₪
-• מנויים: ${fmt(data.subscriptions.filter(s => s.active).reduce((s, sub) => s + (sub.price || 0), 0))} ₪ לחודש
-• מזומן: ${fmt(data.allTime.cashBalance)} ₪
-• שווי כולל: ${fmt(data.totalWealth)} ₪
 • תנועות: ${data.currentMonth.transactions}`;
   }
   
@@ -1580,62 +1488,13 @@ function analyzeQuestion(question, data) {
     return `ההכנסות שלך (${fmt(data.currentMonth.income)} ₪) גבוהות מההוצאות (${fmt(data.currentMonth.expenses)} ₪). אתה חוסך ${savingsRate}% מההכנסה.`;
   }
   
-  // Insights and recommendations
-  if (question.includes('המלצה') || question.includes('תובנה') || question.includes('עצה') || question.includes('לשפר')) {
-    const insights = [];
-    
-    if (data.currentMonth.expenses > data.currentMonth.income) {
-      insights.push('⚠️ הוצאות גבוהות מהכנסות - נסה לצמצם הוצאות לא חיוניות');
-    }
-    
-    if (data.currentMonth.income > 0) {
-      const savingsRate = Math.round((data.currentMonth.savings / data.currentMonth.income) * 100);
-      if (savingsRate < 20) {
-        insights.push(`💡 חיסכון נמוך (${savingsRate}%) - נסה לחסוך לפחות 20% מההכנסה`);
-      } else {
-        insights.push(`✅ יחס חיסכון טוב (${savingsRate}%)`);
-      }
-    }
-    
-    if (data.subscriptions.filter(s => s.active).length > 5) {
-      insights.push('📺 יש הרבה מנויים - בדוק אם יש מנויים שאינך משתמש בהם');
-    }
-    
-    if (data.investments.pnl < 0) {
-      insights.push('📉 יש הפסד בתיק ההשקעות - שקול לבדוק את האסטרטגיה');
-    }
-    
-    const overBudget = Object.entries(data.budgetStatus).filter(([c, s]) => s.spent > s.limit);
-    if (overBudget.length > 0) {
-      insights.push(`🚨 חרגת מהתקציב ב-${overBudget.length} קטגוריות`);
-    }
-    
-    if (data.allTime.cashBalance < 0) {
-      insights.push('💸 יש חוב במזומן - נסה לצמצם הוצאות');
-    }
-    
-    if (data.investments.count > 0 && data.investments.pnl > 0) {
-      insights.push(`📈 יש רווח בתיק ההשקעות (${fmt(data.investments.pnl)} ₪)`);
-    }
-    
-    if (insights.length === 0) {
-      insights.push('🎯 הכל נראה טוב! המשך לנהל את הכספים שלך בצורה מצוינת');
-    }
-    
-    return insights.join('\n');
-  }
-  
   // Default response with helpful suggestions
-  return `אני יכול לענות על שאלות על הנתונים הפיננסיים שלך. נסה לשאול:
-• "כמה כסף יש לי בעוש?"
-• "מה השווי הכולל שלי?"
-• "מה המנויים שלי?"
-• "באיזה מניות אני מושקע?"
-• "כמה פעמים הפקדתי למניות?"
-• "מה הרווח שלי?"
-• "מה ההוצאות הגדולות?"
-• "תן לי המלצות"
-• "סיכום החודש"`;
+  return `אני יכול לענות על שאלות על הנתונים הפיננסיים שלך. נסה לשאות:
+• "כמה הכנסתי החודש?"
+• "מה ההוצאות הכי גדולות?"
+• "איך המצב של התקציב?"
+• "סיכום החודש"
+• "השווה בין הכנסות להוצאות"`;
 }
 
 // Show welcome message on AI page
@@ -1979,12 +1838,7 @@ async function initApp(){
   document.getElementById('upd-mon').value=nowMk();
   const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   document.getElementById('dash-date').textContent=days[today.getDay()]+', '+today.toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
-  Chart.defaults.color='#94a3b8';
-  Chart.defaults.borderColor='rgba(255,255,255,0.03)';
-  Chart.defaults.font.family="'Inter', sans-serif";
-  Chart.defaults.scale.grid.display = false;
-  Chart.defaults.scale.ticks.display = true;
-  Chart.defaults.plugins.legend.display = true;
+  Chart.defaults.color='#4A6480';
   document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
 
   // Load data based on auth state
@@ -2049,28 +1903,6 @@ function togglePrivacyMode() {
   localStorage.setItem('privacyMode', privacyMode);
   applyPrivacyMode();
 }
-
-// Mobile Sidebar Toggle
-function toggleMobileSidebar() {
-  const sidebar = document.getElementById('mob-sidebar');
-  if (sidebar) {
-    sidebar.classList.toggle('show');
-  }
-}
-
-// Detect screen size and add mobile class
-function detectMobile() {
-  const body = document.body;
-  if (window.innerWidth <= 768) {
-    body.classList.add('mobile');
-  } else {
-    body.classList.remove('mobile');
-  }
-}
-
-// Run on load and resize
-window.addEventListener('load', detectMobile);
-window.addEventListener('resize', detectMobile);
 
 function applyPrivacyMode() {
   const btn = document.getElementById('privacy-btn');
