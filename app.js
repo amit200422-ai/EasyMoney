@@ -263,6 +263,7 @@ function renderCheckingBalance(){
   var inc=rel.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
   var exp=rel.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
   var sav=rel.filter(function(t){return t.type==='savings';}).reduce(function(s,t){return s+t.amount;},0);
+  var stock=rel.filter(function(t){return t.cat==='stock_deposit';}).reduce(function(s,t){return s+t.amount;},0);
   var bal=checkingData.opening+inc-exp-sav;
   document.getElementById('ck-bank-name').textContent=checkingData.bank;
   document.getElementById('ck-bal').textContent=fmt(bal);
@@ -270,6 +271,7 @@ function renderCheckingBalance(){
   document.getElementById('ck-inc').textContent='+'+fmt(inc);
   document.getElementById('ck-exp').textContent='-'+fmt(exp);
   document.getElementById('ck-sav').textContent='-'+fmt(sav);
+  document.getElementById('ck-stock').textContent='-'+fmt(stock);
   document.getElementById('ck-sub').textContent=od?'יתרת פתיחה '+checkingData.opening.toLocaleString('he-IL')+'₪ בתאריך '+od:'';
 }
 // ─── LOCK SCREEN — מושבת, משתמשים בGoogle Auth בלבד ─────────────────────
