@@ -1979,10 +1979,12 @@ async function initApp(){
   document.getElementById('upd-mon').value=nowMk();
   const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   document.getElementById('dash-date').textContent=days[today.getDay()]+', '+today.toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
-  Chart.defaults.color='#64748B';
-  Chart.defaults.borderColor='rgba(255,255,255,0.05)';
-  Chart.defaults.font.family="'Assistant', sans-serif";
+  Chart.defaults.color='#94a3b8';
+  Chart.defaults.borderColor='rgba(255,255,255,0.03)';
+  Chart.defaults.font.family="'Inter', sans-serif";
   Chart.defaults.scale.grid.display = false;
+  Chart.defaults.scale.ticks.display = true;
+  Chart.defaults.plugins.legend.display = true;
   document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
 
   // Load data based on auth state
