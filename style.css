@@ -219,7 +219,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
   /* MOBILE SIDEBAR (HAMBURGER MENU) */
   .mob-sidebar{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;backdrop-filter:blur(8px)}
   .mob-sidebar.show{display:flex}
-  .mob-sidebar-content{width:280px;background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-left:1px solid var(--border);height:100%;padding:20px;overflow-y:auto;margin-right:auto}
+  .mob-sidebar-content{width:280px;background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--border);height:100%;padding:20px;overflow-y:auto;margin-left:auto}
   .mob-sidebar-close{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:20px}
   .mob-sidebar-close svg{width:20px;height:20px;color:var(--t1)}
   .mob-nav-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;font-size:15px;font-weight:500;color:var(--t2);cursor:pointer;border:none;background:transparent;width:100%;text-align:right;font-family:'Inter',sans-serif;transition:all 0.2s;margin-bottom:8px}
