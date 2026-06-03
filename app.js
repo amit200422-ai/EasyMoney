@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // PWA
 try{const mf={name:'כסף חכם',short_name:'כסף חכם',start_url:'/',display:'standalone',background_color:'#0B1120',theme_color:'#00E5A0'};const mb=new Blob([JSON.stringify(mf)],{type:'application/json'});const ml=document.getElementById('pwa-manifest');if(ml)ml.href=URL.createObjectURL(mb);}catch(e){}
 
-const CAT={food:'אוכל',transport:'תחבורה',housing:'דיור',utilities:'חשבונות',health:'בריאות',entertainment:'בידור',salary:'משכורת',freelance:'פרילנס',savings:'חיסכון',other:'אחר',groceries:'מזון',restaurants:'מסעדות',coffee:'קפה',gas:'דלק',parking:'חניה',public_transport:'תחבורה ציבורית',rent:'שכירות',electricity:'חשמל',water:'מים',internet:'אינטרנט',phone:'טלפון',insurance:'ביטוח',medical:'רפואה',pharmacy:'פארמה',fitness:'כושר',shopping:'קניות',clothing:'ביגוד',electronics:'אלקטרוניקה',education:'חינוך',gifts:'מתנות',travel:'נסיעות',subscriptions:'מנויים',home_improvement:'שיפוצים',car_maintenance:'תחזוקת רכב',pets:'חיות מחמד',charity:'תרומה',taxes:'מיסים'};
-const CPILL={food:'p-food',transport:'p-transport',housing:'p-housing',utilities:'p-utilities',health:'p-health',entertainment:'p-entertainment',salary:'p-salary',freelance:'p-freelance',savings:'p-savings',other:'p-other',groceries:'p-food',restaurants:'p-food',coffee:'p-food',gas:'p-transport',parking:'p-transport',public_transport:'p-transport',rent:'p-housing',electricity:'p-utilities',water:'p-utilities',internet:'p-utilities',phone:'p-utilities',insurance:'p-health',medical:'p-health',pharmacy:'p-health',fitness:'p-health',shopping:'p-other',clothing:'p-other',electronics:'p-other',education:'p-other',gifts:'p-other',travel:'p-entertainment',subscriptions:'p-utilities',home_improvement:'p-housing',car_maintenance:'p-transport',pets:'p-other',charity:'p-other',taxes:'p-other'};
+const CAT={food:'אוכל',transport:'תחבורה',housing:'דיור',utilities:'חשבונות',health:'בריאות',entertainment:'בידור',salary:'משכורת',freelance:'פרילנס',savings:'חיסכון',other:'אחר',groceries:'מזון',restaurants:'מסעדות',coffee:'קפה',gas:'דלק',parking:'חניה',public_transport:'תחבורה ציבורית',rent:'שכירות',electricity:'חשמל',water:'מים',internet:'אינטרנט',phone:'טלפון',insurance:'ביטוח',medical:'רפואה',pharmacy:'פארמה',fitness:'כושר',shopping:'קניות',clothing:'ביגוד',electronics:'אלקטרוניקה',education:'חינוך',gifts:'מתנות',travel:'נסיעות',subscriptions:'מנויים',home_improvement:'שיפוצים',car_maintenance:'תחזוקת רכב',pets:'חיות מחמד',charity:'תרומה',taxes:'מיסים',stock_deposit:'הפקדה למניות'};
+const CPILL={food:'p-food',transport:'p-transport',housing:'p-housing',utilities:'p-utilities',health:'p-health',entertainment:'p-entertainment',salary:'p-salary',freelance:'p-freelance',savings:'p-savings',other:'p-other',groceries:'p-food',restaurants:'p-food',coffee:'p-food',gas:'p-transport',parking:'p-transport',public_transport:'p-transport',rent:'p-housing',electricity:'p-utilities',water:'p-utilities',internet:'p-utilities',phone:'p-utilities',insurance:'p-health',medical:'p-health',pharmacy:'p-health',fitness:'p-health',shopping:'p-other',clothing:'p-other',electronics:'p-other',education:'p-other',gifts:'p-other',travel:'p-entertainment',subscriptions:'p-utilities',home_improvement:'p-housing',car_maintenance:'p-transport',pets:'p-other',charity:'p-other',taxes:'p-other',stock_deposit:'p-savings'};
 const ITYPE={pension:'פנסיה/גמל',stock:'מניות/ETF',realestate:'נדל"ן',savings_plan:'חיסכון',money_market:'קרן כספית',crypto:'קריפטו',other:'אחר'};
 const ICOLOR={pension:'#00E5A0',stock:'#4D9FFF',realestate:'#FFB830',savings_plan:'#B97FFF',money_market:'#FF77AA',crypto:'#FF5370',other:'#8BA4BE'};
 const COLORS=['#00E5A0','#4D9FFF','#FFB830','#B97FFF','#FF5370','#FF77AA','#00B37D','#1D6FAA'];
@@ -553,11 +553,13 @@ function renderStocks(){const totVal=investments.reduce((s,i)=>s+iILS(i),0),totC
   const el=document.getElementById('stk-list');
   if(!investments.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--t3);font-size:13px">אין השקעות. לחץ "+ הוסף / עדכן" להתחלה.</div>';applyPrivacyMode();return;}
   el.innerHTML=investments.map(inv=>{
-    const curVal=iCurVal(inv),pnl=iPnL(inv),pct=iPct(inv),color=ICOLOR[inv.type]||'#8BA4BE',hist=inv.history||[];
+    const curVal=iCurVal(inv),pnl=iPnL(inv),pct=iPct(inv),color=ICOLOR[inv.type]||'#8BA4BE',hist=inv.history||[],deposits=inv.deposits||[];
     let mChgHTML='';
     if(hist.length>=2){const last=hist[hist.length-1].value,prev=hist[hist.length-2].value,mPct=prev>0?Math.round((last-prev)/prev*1000)/10:0;mChgHTML='<span class="chg '+(mPct>=0?'cup':'cdn')+'">'+(mPct>=0?'+':'')+mPct+'% החודש</span>';}
     const histRows=hist.slice(-6).reverse().map((h,i,arr)=>{const prv=arr[i+1];const chg=prv?Math.round((h.value-prv.value)/prv.value*1000)/10:null;return'<div class="me"><span class="ml">'+heM(h.month)+'</span><span class="mv">'+fmt(h.value)+'</span>'+(chg!==null?'<span class="mc" style="color:'+(chg>=0?'var(--green)':'var(--red)')+'">'+(chg>=0?'+':'')+chg+'%</span>':'<span class="mc" style="color:var(--t3)">—</span>')+'</div>';}).join('');
-    return'<div class="inv-card"><div class="inv-hdr"><div><div style="font-size:14px;font-weight:700">'+inv.name+'</div><div style="font-size:11px;color:var(--t3);margin-top:2px">'+(ITYPE[inv.type]||inv.type)+'</div></div><div style="display:flex;align-items:center;gap:10px">'+mChgHTML+'<button class="btn btn-sm" onclick="openUpd('+inv.id+')" style="font-size:11px">עדכן שווי</button><button class="btn-del" onclick="delInv('+inv.id+')">×</button></div></div><div class="inv-body"><div class="inv-grid"><div class="inv-stat"><div class="inv-sl">שווי נוכחי</div><div class="inv-sv" style="color:'+color+'">'+fmt(curVal)+'</div></div><div class="inv-stat"><div class="inv-sl">עלות קנייה</div><div class="inv-sv">'+fmt(inv.cost||0)+'</div></div><div class="inv-stat"><div class="inv-sl">רווח/הפסד</div><div class="inv-sv" style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+fmt(pnl)+'</div></div><div class="inv-stat"><div class="inv-sl">% שינוי</div><div class="inv-sv"><span class="chg '+(pct>=0?'cup':'cdn')+'">'+(pct>=0?'+':'')+pct+'%</span></div></div></div>'+(hist.length?'<div class="ct" style="margin-bottom:.5rem">היסטוריה חודשית</div>'+histRows:'')+'</div></div>';
+    const depositRows=deposits.slice(-10).reverse().map(d=>'<div class="me"><span class="ml">'+d.date.slice(5).replace('-','/')+'</span><span class="mv" style="color:var(--green)">+'+fmt(d.amount)+'</span></div>').join('');
+    const totalDeposits=deposits.reduce((s,d)=>s+d.amount,0);
+    return'<div class="inv-card"><div class="inv-hdr"><div><div style="font-size:14px;font-weight:700">'+inv.name+'</div><div style="font-size:11px;color:var(--t3);margin-top:2px">'+(ITYPE[inv.type]||inv.type)+'</div></div><div style="display:flex;align-items:center;gap:10px">'+mChgHTML+'<button class="btn btn-sm" onclick="openUpd('+inv.id+')" style="font-size:11px">עדכן שווי</button><button class="btn-del" onclick="delInv('+inv.id+')">×</button></div></div><div class="inv-body"><div class="inv-grid"><div class="inv-stat"><div class="inv-sl">שווי נוכחי</div><div class="inv-sv" style="color:'+color+'">'+fmt(curVal)+'</div></div><div class="inv-stat"><div class="inv-sl">עלות קנייה</div><div class="inv-sv">'+fmt(inv.cost||0)+'</div></div><div class="inv-stat"><div class="inv-sl">רווח/הפסד</div><div class="inv-sv" style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+fmt(pnl)+'</div></div><div class="inv-stat"><div class="inv-sl">% שינוי</div><div class="inv-sv"><span class="chg '+(pct>=0?'cup':'cdn')+'">'+(pct>=0?'+':'')+pct+'%</span></div></div></div>'+(hist.length?'<div class="ct" style="margin-bottom:.5rem">היסטוריה חודשית</div>'+histRows:'')+(deposits.length?'<div class="ct" style="margin-bottom:.5rem;margin-top:1rem">היסטוריית הפקדות (סה״כ: '+fmt(totalDeposits)+')</div>'+depositRows:'')+'</div></div>';
   }).join('');
   applyPrivacyMode();
 }
@@ -742,7 +744,66 @@ function renderTips(){const mt=curMt(),inc=mt.filter(t=>t.type==='income').reduc
   applyPrivacyMode();
 }
 
-// ─── CREDIT CARD IMPORT ──────────────────────────────────────────────────────
+// ─── STOCK DEPOSIT ─────────────────────────────────────────────────────────────
+window.openStockDeposit = function() {
+  document.getElementById('stock-deposit-modal').classList.add('show');
+  document.getElementById('stock-deposit-month').value = nowMk();
+  document.getElementById('stock-deposit-amount').value = '';
+  
+  // Populate investment dropdown
+  const select = document.getElementById('stock-deposit-investment');
+  select.innerHTML = '<option value="">בחר השקעה</option>' + 
+    investments.map(inv => `<option value="${inv.id}">${inv.name}</option>`).join('');
+  
+  document.getElementById('stock-deposit-amount').focus();
+};
+
+window.saveStockDeposit = function() {
+  const amount = parseFloat(document.getElementById('stock-deposit-amount').value);
+  const month = document.getElementById('stock-deposit-month').value;
+  const investmentId = document.getElementById('stock-deposit-investment').value;
+  
+  if (!amount || amount <= 0) {
+    toast('נא להזין סכום תקין', 'red');
+    return;
+  }
+  
+  if (!month) {
+    toast('נא לבחור חודש', 'red');
+    return;
+  }
+  
+  if (!investmentId) {
+    toast('נא לבחור השקעה', 'red');
+    return;
+  }
+  
+  // Find the investment and add deposit to its history
+  const inv = investments.find(i => i.id === parseInt(investmentId));
+  if (inv) {
+    if (!inv.deposits) inv.deposits = [];
+    inv.deposits.push({
+      date: month + '-01',
+      amount: amount,
+      timestamp: Date.now()
+    });
+  }
+  
+  // Add as expense transaction (deducts from income)
+  txns.push({
+    id: Date.now() + Math.random(),
+    type: 'expense',
+    cat: 'stock_deposit',
+    desc: 'הפקדה למניות - ' + (inv ? inv.name : ''),
+    amount: amount,
+    date: month + '-01'
+  });
+  
+  closeModal('stock-deposit-modal');
+  save();
+  renderAll();
+  toast('✓ הפקדה נשמרה', 'green');
+};
 let selectedBank = 'isracard';
 let pendingImport = [];
 const CAT_MAP_IMP = {

@@ -18,7 +18,7 @@
 <link rel="manifest" id="pwa-manifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="כסף חכם">
-<script src="app.js?v=51"></script>
+<script src="app.js?v=53"></script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -252,7 +252,7 @@
 </div>
 
 <div id="page-stocks" class="page">
-  <div class="ph"><div><div class="pt">תיק השקעות</div><div class="pt-sub">עדכן ידנית את שווי ההשקעות שלך בכל חודש</div></div><button class="btn btn-g btn-sm" onclick="openAddInv()">+ הוסף / עדכן</button></div>
+  <div class="ph"><div><div class="pt">תיק השקעות</div><div class="pt-sub">עדכן ידנית את שווי ההשקעות שלך בכל חודש</div></div><div style="display:flex;gap:8px"><button class="btn btn-g btn-sm" onclick="openAddInv()">+ הוסף / עדכן</button><button class="btn btn-sm" onclick="openStockDeposit()" style="background:var(--green);color:#0B1120">💰 הפקדה</button></div></div>
   <div class="g3" id="stk-stats"></div>
   <div id="stk-list"></div>
   <div class="g2">
@@ -412,6 +412,15 @@
 </div>
 
 
+
+<div class="modal-bg" id="stock-deposit-modal"><div class="modal">
+  <div class="modal-t">הפקדה למניות</div>
+  <div style="font-size:13px;color:var(--t2);margin-bottom:1rem;line-height:1.7">הזן את הסכום שברצונך להפקיד לתיק ההשקעות.<br>הסכום יורד מההכנסות שלך (כמו העברה לכיס חיסכון).</div>
+  <div class="frow"><div class="fi"><label>השקעה</label><select id="stock-deposit-investment" style="padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--rm);background:var(--bg3);color:var(--t1);font-size:13px;font-family:'Heebo',sans-serif;width:100%"><option value="">בחר השקעה</option></select></div></div>
+  <div class="frow"><div class="fi"><label>סכום הפקדה (₪)</label><input type="number" id="stock-deposit-amount" placeholder="0" inputmode="decimal"></div></div>
+  <div class="frow"><div class="fi"><label>חודש</label><input type="month" id="stock-deposit-month"></div></div>
+  <div class="modal-act"><button class="btn" onclick="closeModal('stock-deposit-modal')">ביטול</button><button class="btn btn-g" onclick="saveStockDeposit()">הפקד</button></div>
+</div></div>
 
 <div class="modal-bg" id="checking-modal"><div class="modal">
   <div class="modal-t">הגדרת יתרת עו"ש</div>
