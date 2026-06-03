@@ -2058,6 +2058,20 @@ function toggleMobileSidebar() {
   }
 }
 
+// Detect screen size and add mobile class
+function detectMobile() {
+  const body = document.body;
+  if (window.innerWidth <= 768) {
+    body.classList.add('mobile');
+  } else {
+    body.classList.remove('mobile');
+  }
+}
+
+// Run on load and resize
+window.addEventListener('load', detectMobile);
+window.addEventListener('resize', detectMobile);
+
 function applyPrivacyMode() {
   const btn = document.getElementById('privacy-btn');
   const lbl = document.getElementById('privacy-lbl');
