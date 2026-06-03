@@ -1336,60 +1336,165 @@ window.sendChatPage = function() {
 function generateAIResponse(question) {
   const q = question.toLowerCase();
   const mt = curMt();
-  const inc = mt.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-  const exp = mt.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const sav = mt.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
-  const balance = inc - exp - sav;
+  const allTxns = txns;
   
-  // Get top expense category
-  const catExpenses = {};
+  // Comprehensive data analysis
+  const data = {
+    currentMonth: {
+      income: mt.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+      expenses: mt.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+      savings: mt.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0),
+      balance: 0,
+      transactions: mt.length
+    },
+    allTime: {
+      income: allTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+      expenses: allTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+      savings: allTxns.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0),
+      transactions: allTxns.length
+    },
+    investments: {
+      totalValue: investments.reduce((s, i) => s + iILS(i), 0),
+      totalCost: investments.reduce((s, i) => s + (i.cost || 0), 0),
+      pnl: investments.reduce((s, i) => s + iPnL(i), 0),
+      count: investments.length
+    },
+    categories: {},
+    topExpenses: [],
+    budgetStatus: {}
+  };
+  
+  data.currentMonth.balance = data.currentMonth.income - data.currentMonth.expenses - data.currentMonth.savings;
+  
+  // Analyze categories
   mt.filter(t => t.type === 'expense').forEach(t => {
-    catExpenses[t.cat] = (catExpenses[t.cat] || 0) + t.amount;
+    data.categories[t.cat] = (data.categories[t.cat] || 0) + t.amount;
   });
-  const topCat = Object.entries(catExpenses).sort((a, b) => b[1] - a[1])[0];
   
-  // Investment info
-  const invVal = investments.reduce((s, i) => s + iILS(i), 0);
-  const invPnL = investments.reduce((s, i) => s + iPnL(i), 0);
+  // Get top expenses
+  data.topExpenses = mt.filter(t => t.type === 'expense')
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
   
-  // More flexible keyword matching
-  if (q.includes('הכנס') || q.includes('הכנסות') || q.includes('כמה הכנסתי') || q.includes('הרווח') || q.includes('הכנסתי')) {
-    return `ההכנסות החודשיות שלך הן ${fmt(inc)} ₪`;
-  }
-  if (q.includes('הוצא') || q.includes('הוצאות') || q.includes('כמה הוצאתי') || q.includes('הוצאתי') || q.includes('בזבזתי')) {
-    return `ההוצאות החודשיות שלך הן ${fmt(exp)} ₪`;
-  }
-  if (q.includes('חיסכ') || q.includes('חסכ') || q.includes('חיסכון') || q.includes('חסכון') || q.includes('כמה חסכתי') || q.includes('כמה חיסכתי')) {
-    return `החיסכון החודשי שלך הוא ${fmt(sav)} ₪`;
-  }
-  if (q.includes('מאזן') || q.includes('באלנס') || q.includes('נשאר') || q.includes('נשאר לי') || q.includes('כמה נשאר')) {
-    return `המאזן החודשי שלך הוא ${fmt(balance)} ₪ ${balance >= 0 ? '✅' : '⚠️'}`;
-  }
-  if (q.includes('השקע') || q.includes('השקעות') || q.includes('מניות') || q.includes('תיק') || q.includes('שווי תיק')) {
-    return `שווי תיק ההשקעות שלך הוא ${fmt(invVal)} ₪ עם ${invPnL >= 0 ? 'רווח' : 'הפסד'} של ${fmt(Math.abs(invPnL))} ₪`;
-  }
-  if (q.includes('קטגור') || q.includes('יוקר') || q.includes('הכי יקר') || q.includes('איפה הוצאתי הכי הרבה')) {
-    if (topCat) {
-      return `הקטגוריה הכי יקרה החודש היא ${CAT[topCat] || topCat[0]} עם ${fmt(topCat[1])} ₪`;
+  // Check budget status
+  Object.entries(budgets).forEach(([cat, limit]) => {
+    const spent = mt.filter(t => t.type === 'expense' && t.cat === cat).reduce((s, t) => s + t.amount, 0);
+    data.budgetStatus[cat] = {
+      limit,
+      spent,
+      remaining: limit - spent,
+      percentage: (spent / limit) * 100
+    };
+  });
+  
+  // Intelligent response generation
+  const response = analyzeQuestion(q, data);
+  return response;
+}
+
+function analyzeQuestion(question, data) {
+  // Income questions
+  if (question.includes('הכנס') || question.includes('הרווח') || question.includes('קיבלתי')) {
+    if (question.includes('חודש') || question.includes('החודש')) {
+      return `ההכנסות החודשיות שלך הן ${fmt(data.currentMonth.income)} ₪ מתוך ${data.currentMonth.transactions} תנועות.`;
     }
-    return 'אין מספיק נתונים להציג את הקטגוריה הכי יקרה';
+    if (question.includes('כל הזמן') || question.includes('סך הכל')) {
+      return `סך ההכנסות שלך בכל הזמן הוא ${fmt(data.allTime.income)} ₪.`;
+    }
+    return `ההכנסות החודשיות שלך הן ${fmt(data.currentMonth.income)} ₪, וסך הכל ${fmt(data.allTime.income)} ₪ בכל הזמן.`;
   }
-  if (q.includes('תקציב') || q.includes('באדגט') || q.includes('חרגתי') || q.includes('מסגרת')) {
-    const overBudget = Object.entries(budgets).filter(([c, bud]) => {
-      const spent = mt.filter(t => t.type === 'expense' && t.cat === c).reduce((s, t) => s + t.amount, 0);
-      return spent > bud;
-    });
+  
+  // Expense questions
+  if (question.includes('הוצא') || question.includes('בזבז') || question.includes('הוצאתי')) {
+    if (question.includes('חודש') || question.includes('החודש')) {
+      return `ההוצאות החודשיות שלך הן ${fmt(data.currentMonth.expenses)} ₪.`;
+    }
+    if (question.includes('כל הזמן') || question.includes('סך הכל')) {
+      return `סך ההוצאות שלך בכל הזמן הוא ${fmt(data.allTime.expenses)} ₪.`;
+    }
+    return `ההוצאות החודשיות שלך הן ${fmt(data.currentMonth.expenses)} ₪, וסך הכל ${fmt(data.allTime.expenses)} ₪ בכל הזמן.`;
+  }
+  
+  // Savings questions
+  if (question.includes('חיסכ') || question.includes('חסכ')) {
+    if (question.includes('חודש') || question.includes('החודש')) {
+      return `החיסכון החודשי שלך הוא ${fmt(data.currentMonth.savings)} ₪.`;
+    }
+    if (question.includes('כל הזמן') || question.includes('סך הכל')) {
+      return `סך החיסכון שלך בכל הזמן הוא ${fmt(data.allTime.savings)} ₪.`;
+    }
+    return `החיסכון החודשי שלך הוא ${fmt(data.currentMonth.savings)} ₪, וסך הכל ${fmt(data.allTime.savings)} ₪ בכל הזמן.`;
+  }
+  
+  // Balance questions
+  if (question.includes('מאזן') || question.includes('באלנס') || question.includes('נשאר') || question.includes('נותר')) {
+    const status = data.currentMonth.balance >= 0 ? 'חיובי ✅' : 'שלילי ⚠️';
+    return `המאזן החודשי שלך הוא ${fmt(data.currentMonth.balance)} ₪ (${status}).`;
+  }
+  
+  // Investment questions
+  if (question.includes('השקע') || question.includes('מניות') || question.includes('תיק')) {
+    const pnlStatus = data.investments.pnl >= 0 ? 'רווח' : 'הפסד';
+    return `שווי תיק ההשקעות שלך הוא ${fmt(data.investments.totalValue)} ₪ עם ${pnlStatus} של ${fmt(Math.abs(data.investments.pnl))} ₪. יש לך ${data.investments.count} השקעות.`;
+  }
+  
+  // Category questions
+  if (question.includes('קטגור') || question.includes('יוקר') || question.includes('איפה') || question.includes('הכי')) {
+    const sortedCats = Object.entries(data.categories).sort((a, b) => b[1] - a[1]);
+    if (sortedCats.length === 0) return 'אין הוצאות רשומות החודש.';
+    
+    const topCat = sortedCats[0];
+    const catName = CAT[topCat[0]] || topCat[0];
+    return `הקטגוריה הכי יקרה החודש היא "${catName}" עם ${fmt(topCat[1])} ₪. הקטגוריות הבאות: ${sortedCats.slice(1, 4).map(([c, a]) => `${CAT[c] || c}: ${fmt(a)} ₪`).join(', ')}.`;
+  }
+  
+  // Budget questions
+  if (question.includes('תקציב') || question.includes('באדגט') || question.includes('מסגרת')) {
+    const overBudget = Object.entries(data.budgetStatus).filter(([c, s]) => s.spent > s.limit);
+    const onTrack = Object.entries(data.budgetStatus).filter(([c, s]) => s.spent <= s.limit);
+    
     if (overBudget.length > 0) {
-      return `חרגת מהתקציב ב: ${overBudget.map(([c]) => CAT[c] || c).join(', ')}`;
+      return `חרגת מהתקציב ב: ${overBudget.map(([c, s]) => `${CAT[c] || c}: ${fmt(s.spent)} ₪ מתוך ${fmt(s.limit)} (${Math.round(s.percentage)}%)`).join(', ')}.`;
     }
-    return 'אתה במסגרת התקציב! 🎯';
-  }
-  if (q.includes('כמה') || q.includes('מה המצב') || q.includes('סיכום') || q.includes('סטטוס')) {
-    return `סיכום החודש: הכנסות ${fmt(inc)} ₪, הוצאות ${fmt(exp)} ₪, חיסכון ${fmt(sav)} ₪, מאזן ${fmt(balance)} ₪`;
+    if (onTrack.length > 0) {
+      return `אתה במסגרת התקציב! סטטוס: ${onTrack.map(([c, s]) => `${CAT[c] || c}: ${fmt(s.spent)} ₪ מתוך ${fmt(s.limit)} (${Math.round(s.percentage)}%)`).join(', ')}. 🎯`;
+    }
+    return 'לא הגדרת תקציבים עדיין.';
   }
   
-  // Default response
-  return `אני יכול לעזור לך עם שאלות על הנתונים הפיננסיים שלך. נסה לשאול על הכנסות, הוצאות, חיסכון, מאזן, השקעות, קטגוריות או תקציב.`;
+  // Top expenses questions
+  if (question.includes('הוצאות הגדולות') || question.includes('הכי גדול') || question.includes('טופ')) {
+    if (data.topExpenses.length === 0) return 'אין הוצאות רשומות החודש.';
+    return `ההוצאות הגדולות החודש: ${data.topExpenses.slice(0, 3).map(t => `${t.desc}: ${fmt(t.amount)} ₪`).join(', ')}.`;
+  }
+  
+  // General summary questions
+  if (question.includes('סיכום') || question.includes('מה המצב') || question.includes('סטטוס') || question.includes('כמה') || question.includes('מה')) {
+    return `סיכום החודש:
+• הכנסות: ${fmt(data.currentMonth.income)} ₪
+• הוצאות: ${fmt(data.currentMonth.expenses)} ₪
+• חיסכון: ${fmt(data.currentMonth.savings)} ₪
+• מאזן: ${fmt(data.currentMonth.balance)} ₪
+• תיק השקעות: ${fmt(data.investments.totalValue)} ₪
+• תנועות: ${data.currentMonth.transactions}`;
+  }
+  
+  // Comparison questions
+  if (question.includes('השווה') || question.includes('השוואה') || question.includes('יותר') || question.includes('פחות')) {
+    if (data.currentMonth.expenses > data.currentMonth.income) {
+      return `ההוצאות שלך (${fmt(data.currentMonth.expenses)} ₪) גבוהות מההכנסות (${fmt(data.currentMonth.income)} ₪) ב-${fmt(data.currentMonth.expenses - data.currentMonth.income)} ₪. כדאי לבדוק איפה אפשר לחסוך.`;
+    }
+    const savingsRate = data.currentMonth.income > 0 ? Math.round((data.currentMonth.savings / data.currentMonth.income) * 100) : 0;
+    return `ההכנסות שלך (${fmt(data.currentMonth.income)} ₪) גבוהות מההוצאות (${fmt(data.currentMonth.expenses)} ₪). אתה חוסך ${savingsRate}% מההכנסה.`;
+  }
+  
+  // Default response with helpful suggestions
+  return `אני יכול לענות על שאלות על הנתונים הפיננסיים שלך. נסה לשאות:
+• "כמה הכנסתי החודש?"
+• "מה ההוצאות הכי גדולות?"
+• "איך המצב של התקציב?"
+• "סיכום החודש"
+• "השווה בין הכנסות להוצאות"`;
 }
 
 // Show welcome message on AI page
