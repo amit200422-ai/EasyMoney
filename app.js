@@ -1322,15 +1322,71 @@ window.sendChatPage = function() {
   input.value = '';
   body.scrollTop = body.scrollHeight;
   
-  // Simulate bot response
+  // Generate AI response
   setTimeout(() => {
+    const response = generateAIResponse(msg);
     const botMsg = document.createElement('div');
     botMsg.className = 'chat-message bot';
-    botMsg.innerHTML = 'אני עובד על תשובה... (זה עמוד AI חדש)';
+    botMsg.innerHTML = response;
     body.appendChild(botMsg);
     body.scrollTop = body.scrollHeight;
   }, 500);
 };
+
+function generateAIResponse(question) {
+  const q = question.toLowerCase();
+  const mt = curMt();
+  const inc = mt.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const exp = mt.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const sav = mt.filter(t => t.type === 'savings').reduce((s, t) => s + t.amount, 0);
+  const balance = inc - exp - sav;
+  
+  // Get top expense category
+  const catExpenses = {};
+  mt.filter(t => t.type === 'expense').forEach(t => {
+    catExpenses[t.cat] = (catExpenses[t.cat] || 0) + t.amount;
+  });
+  const topCat = Object.entries(catExpenses).sort((a, b) => b[1] - a[1])[0];
+  
+  // Investment info
+  const invVal = investments.reduce((s, i) => s + iILS(i), 0);
+  const invPnL = investments.reduce((s, i) => s + iPnL(i), 0);
+  
+  if (q.includes('הכנסות') || q.includes('הכנסה')) {
+    return `ההכנסות החודשיות שלך הן ${fmt(inc)} ₪`;
+  }
+  if (q.includes('הוצאות') || q.includes('הוצאה')) {
+    return `ההוצאות החודשיות שלך הן ${fmt(exp)} ₪`;
+  }
+  if (q.includes('חיסכון') || q.includes('חסכון')) {
+    return `החיסכון החודשי שלך הוא ${fmt(sav)} ₪`;
+  }
+  if (q.includes('מאזן') || q.includes('באלנס')) {
+    return `המאזן החודשי שלך הוא ${fmt(balance)} ₪ ${balance >= 0 ? '✅' : '⚠️'}`;
+  }
+  if (q.includes('השקעות') || q.includes('מניות')) {
+    return `שווי תיק ההשקעות שלך הוא ${fmt(invVal)} ₪ עם ${invPnL >= 0 ? 'רווח' : 'הפסד'} של ${fmt(Math.abs(invPnL))} ₪`;
+  }
+  if (q.includes('קטגוריה') || q.includes('יוקר')) {
+    if (topCat) {
+      return `הקטגוריה הכי יקרה החודש היא ${CAT[topCat] || topCat[0]} עם ${fmt(topCat[1])} ₪`;
+    }
+    return 'אין מספיק נתונים להציג את הקטגוריה הכי יקרה';
+  }
+  if (q.includes('תקציב') || q.includes('באדגט')) {
+    const overBudget = Object.entries(budgets).filter(([c, bud]) => {
+      const spent = mt.filter(t => t.type === 'expense' && t.cat === c).reduce((s, t) => s + t.amount, 0);
+      return spent > bud;
+    });
+    if (overBudget.length > 0) {
+      return `חרגת מהתקציב ב: ${overBudget.map(([c]) => CAT[c] || c).join(', ')}`;
+    }
+    return 'אתה במסגרת התקציב! 🎯';
+  }
+  
+  // Default response
+  return `אני יכול לעזור לך עם שאלות על הנתונים הפיננסיים שלך. נסה לשאות על הכנסות, הוצאות, חיסכון, מאזן, השקעות, קטגוריות או תקציב.`;
+}
 
 // Show welcome message on AI page
 function showWelcomeMessagePage() {
