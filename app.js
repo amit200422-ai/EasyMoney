@@ -143,7 +143,7 @@ auth.onAuthStateChanged((user) => {
     const ub = document.getElementById('ubar');
     if (ub) {
       ub.style.display = 'flex';
-      ub.innerHTML = (user.photoURL?'<img src="'+user.photoURL+'">':'') + '<span>' + (user.displayName||user.email).split(' ')[0] + '</span><span style="opacity:.4;margin-right:4px">| יציאה</span>';
+      ub.innerHTML = (user.photoURL?'<img src="'+user.photoURL+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover">':'') + '<span>' + (user.displayName||user.email).split(' ')[0] + '</span><span style="opacity:.4;margin-right:4px">| יציאה</span>';
     }
     // Update page title with email
     document.title = 'כסף חכם - ' + userEmail;
