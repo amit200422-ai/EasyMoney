@@ -525,55 +525,13 @@ function delRec(id){recurring=recurring.filter(r=>r.id!==id);save();renderRecurr
 function applyRecurring(){const today=nowMk(),added=[];recurring.forEach(r=>{const date=today+'-'+String(Math.min(r.day,28)).padStart(2,'0');if(!txns.some(t=>t.desc===r.desc&&mk(t.date)===today)){txns.push({id:Date.now()+Math.random(),type:'expense',desc:r.desc,amount:r.amount,cat:r.cat,date});added.push(r.desc);}});renderAll();toast(added.length?'✓ נוספו '+added.length+' הוצאות':'כל ההוצאות הקבועות כבר קיימות',added.length?'green':'amber');}
 
 function openAddInv(){document.getElementById('inv-name').value='';document.getElementById('inv-cost').value='';document.getElementById('inv-value').value='';document.getElementById('inv-month').value=nowMk();document.getElementById('inv-modal').classList.add('show');}
-function saveInv(){const name=document.getElementById('inv-name').value.trim(),type=document.getElementById('inv-type').value,currency=document.getElementById('inv-cur').value,cost=parseFloat(document.getElementById('inv-cost').value)||0,value=parseFloat(document.getElementById('inv-value').value)||0,month=document.getElementById('inv-month').value||nowMk();if(!name||!value){toast('יש למלא שם ושווי','amber');return;}let inv=investments.find(i=>i.name===name);if(inv){if(!inv.history)inv.history=[];const ex=inv.history.find(h=>h.month===month);if(ex)ex.value=value;else inv.history.push({month,value});inv.history.sort((a,b)=>a.month.localeCompare(b.month));if(cost>0)inv.cost=cost;}else{investments.push({id:Date.now(),name,type,currency,cost:cost||value,history:[{month,value}]});}closeModal('inv-modal');calculateMoneyMarketFunds();save();renderStocks();buildStkCharts();toast('✓ השקעה עודכנה','green');}
+function saveInv(){const name=document.getElementById('inv-name').value.trim(),type=document.getElementById('inv-type').value,currency=document.getElementById('inv-cur').value,cost=parseFloat(document.getElementById('inv-cost').value)||0,value=parseFloat(document.getElementById('inv-value').value)||0,month=document.getElementById('inv-month').value||nowMk();if(!name||!value){toast('יש למלא שם ושווי','amber');return;}let inv=investments.find(i=>i.name===name);if(inv){if(!inv.history)inv.history=[];const ex=inv.history.find(h=>h.month===month);if(ex)ex.value=value;else inv.history.push({month,value});inv.history.sort((a,b)=>a.month.localeCompare(b.month));if(cost>0)inv.cost=cost;}else{investments.push({id:Date.now(),name,type,currency,cost:cost||value,history:[{month,value}]});}closeModal('inv-modal');save();renderStocks();buildStkCharts();toast('✓ השקעה עודכנה','green');}
 
 function openUpd(id){const inv=investments.find(i=>i.id===id);if(!inv)return;updId=id;document.getElementById('upd-name').textContent=inv.name;document.getElementById('upd-val').value=iCurVal(inv);document.getElementById('upd-mon').value=nowMk();document.getElementById('upd-modal').classList.add('show');}
-function saveUpd(){const inv=investments.find(i=>i.id===updId);if(!inv)return;const value=parseFloat(document.getElementById('upd-val').value)||0,month=document.getElementById('upd-mon').value||nowMk();if(!inv.history)inv.history=[];const ex=inv.history.find(h=>h.month===month);if(ex)ex.value=value;else inv.history.push({month,value});inv.history.sort((a,b)=>a.month.localeCompare(b.month));closeModal('upd-modal');calculateMoneyMarketFunds();save();renderStocks();buildStkCharts();toast('✓ שווי עודכן ל-'+fmt(value),'green');}
+function saveUpd(){const inv=investments.find(i=>i.id===updId);if(!inv)return;const value=parseFloat(document.getElementById('upd-val').value)||0,month=document.getElementById('upd-mon').value||nowMk();if(!inv.history)inv.history=[];const ex=inv.history.find(h=>h.month===month);if(ex)ex.value=value;else inv.history.push({month,value});inv.history.sort((a,b)=>a.month.localeCompare(b.month));closeModal('upd-modal');save();renderStocks();buildStkCharts();toast('✓ שווי עודכן ל-'+fmt(value),'green');}
 function delInv(id){if(!confirm('למחוק?'))return;investments=investments.filter(i=>i.id!==id);save();renderStocks();buildStkCharts();}
 
-// Automatic calculation for money market funds (4% annual = ~0.011% daily)
-function calculateMoneyMarketFunds() {
-  const today = nowMk();
-  let updated = 0;
-  
-  investments.forEach(inv => {
-    if (inv.type === 'money_market' && inv.history && inv.history.length > 0) {
-      const lastEntry = inv.history[inv.history.length - 1];
-      const lastMonth = lastEntry.month;
-      const lastValue = lastEntry.value;
-      
-      // Calculate days since last update
-      const lastDate = new Date(lastMonth + '-01');
-      const now = new Date();
-      const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
-      
-      // Only update if at least 1 day has passed
-      if (daysSince > 0) {
-        // Daily rate: 4% annually / 365 = ~0.011% daily
-        const dailyRate = 0.04 / 365;
-        const newValue = lastValue * Math.pow(1 + dailyRate, daysSince);
-        
-        // Update or add today's entry
-        const ex = inv.history.find(h => h.month === today);
-        if (ex) {
-          ex.value = newValue;
-        } else {
-          inv.history.push({month: today, value: newValue});
-        }
-        inv.history.sort((a,b) => a.month.localeCompare(b.month));
-        updated++;
-      }
-    }
-  });
-  
-  if (updated > 0) {
-    save();
-    // Don't call renderStocks() here to avoid infinite recursion
-    // It will be called by the function that invoked calculateMoneyMarketFunds
-  }
-}
-
-function renderStocks(){calculateMoneyMarketFunds();const totVal=investments.reduce((s,i)=>s+iILS(i),0),totCost=investments.reduce((s,i)=>s+(i.cost||0),0),totPnL=totVal-totCost,pct=totCost>0?Math.round(totPnL/totCost*1000)/10:0;document.getElementById('stk-stats').innerHTML='<div class="sc sc-acc"><div class="sl">שווי תיק כולל</div><div class="sv b">'+fmt(totVal)+'</div><div class="ss">'+investments.length+' השקעות</div></div><div class="sc"><div class="sl">עלות קנייה</div><div class="sv">'+fmt(totCost)+'</div></div><div class="sc"><div class="sl">רווח/הפסד</div><div class="sv '+(totPnL>=0?'g':'r')+'">'+(totPnL>=0?'+':'')+fmt(totPnL)+'</div><div class="ss" style="color:'+(totPnL>=0?'var(--green)':'var(--red)')+'">'+(pct>=0?'+':'')+pct+'%</div></div>';
+function renderStocks(){const totVal=investments.reduce((s,i)=>s+iILS(i),0),totCost=investments.reduce((s,i)=>s+(i.cost||0),0),totPnL=totVal-totCost,pct=totCost>0?Math.round(totPnL/totCost*1000)/10:0;document.getElementById('stk-stats').innerHTML='<div class="sc sc-acc"><div class="sl">שווי תיק כולל</div><div class="sv b">'+fmt(totVal)+'</div><div class="ss">'+investments.length+' השקעות</div></div><div class="sc"><div class="sl">עלות קנייה</div><div class="sv">'+fmt(totCost)+'</div></div><div class="sc"><div class="sl">רווח/הפסד</div><div class="sv '+(totPnL>=0?'g':'r')+'">'+(totPnL>=0?'+':'')+fmt(totPnL)+'</div><div class="ss" style="color:'+(totPnL>=0?'var(--green)':'var(--red)')+'">'+(pct>=0?'+':'')+pct+'%</div></div>';
   const el=document.getElementById('stk-list');
   if(!investments.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--t3);font-size:13px">אין השקעות. לחץ "+ הוסף / עדכן" להתחלה.</div>';applyPrivacyMode();return;}
   el.innerHTML=investments.map(inv=>{
