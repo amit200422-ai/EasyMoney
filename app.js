@@ -568,8 +568,8 @@ function calculateMoneyMarketFunds() {
   
   if (updated > 0) {
     save();
-    renderStocks();
-    buildStkCharts();
+    // Don't call renderStocks() here to avoid infinite recursion
+    // It will be called by the function that invoked calculateMoneyMarketFunds
   }
 }
 
